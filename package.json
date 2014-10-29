@@ -1,0 +1,14 @@
+{
+  "name": "Bulk-API-Demo",
+  "description": "Demonstrate using nforce to make Bulk API call",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "express": "4.8.5",
+    "body-parser": "1.6.6",
+    "method-override": "2.1.3", 
+    "errorhandler": "1.2.0",
+    "jade": "1.6.0",
+    "node-salesforce": "0.8.0"
+  }
+}
