@@ -105,8 +105,8 @@ app.get('/physicians/new', function(req, res) {
 	var phyFields = {
 		fields: [{name: "first_name", label: "First name"}, 
 		{name: "last_name", label: "Last name"},
-		{name: "specialization", label: "Specialization"},
-		{name: "physician_id", label: "Physician id, e.g. Phys000005"}]
+		{name: "specialization", label: "Specialization"}
+		]
 	};
 	res.render('physicians/new', { title: 'New Physician', data: phyFields })
 });
@@ -123,9 +123,9 @@ app.post('/physicians/create', function(req, res) {
 			return;
 		}
 		var ph = req.body.physician;
-		var insertArray = [ph.first_name, ph.last_name, ph.specialization, ph.physician_id];
-		client.query('INSERT INTO "physicians" (first_name, last_name, specialization, physician_id) ' + 
-               			'VALUES ($1, $2, $3, $4) ', insertArray,
+		var insertArray = [ph.first_name, ph.last_name, ph.specialization];
+		client.query('INSERT INTO "physicians" (first_name, last_name, specialization) ' + 
+               			'VALUES ($1, $2, $3) returning physician_id', insertArray,
                 		function(err, result) {
             done(); // release client back to the pool
             if (err) {
@@ -133,7 +133,7 @@ app.post('/physicians/create', function(req, res) {
             	res.status(500).body('error retrieving data');
 				return;
             } else {
-            	res.redirect('/physicians/'+ph.physician_id);
+            	res.redirect('/physicians/'+result.rows[0].physician_id);
 				res.end();                 
             } 
         });
