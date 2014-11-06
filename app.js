@@ -152,12 +152,12 @@ app.post('/subscribe', function(req, res) {
 		
 		var valsString = '';
 		var first = 'true';
-		for (id in dev.physician_ids) {
+		for (ix in dev.physician_ids) {
 			if (first != 'true') {
 				valsString += ', ';
 			}
 			first = 'false';
-			valsString += ('(\'' + dev.sf_org_id + '\', \'' + id + '\', \'' + timestamp + '\' )');
+			valsString += ('(\'' + dev.sf_org_id + '\', \'' + dev.physician_ids[ix] + '\', \'' + timestamp + '\' )');
 		}
 		console.log('valsString before insert: ' + valsString);
 		
