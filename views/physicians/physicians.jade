@@ -3,4 +3,4 @@ a(href='/physicians/new') Create a new Physician
 p Existing Physicians #{data.rows.length}
 ul
   for item in data.rows
-    li: a(href='/physicians/#{item.physician_id}') #{item.last_name}, #{item.first_name} - #{item.specialization}
+    li: a(href='/physicians/#{item.physician_id}') #{item.last_name}, #{item.first_name} - #{item.specialization}, #{item.physician_id}
