@@ -1,0 +1,8 @@
+h1= title
+form(method='post', action='/physicians/create')
+  each field in data.fields
+    div
+      label #{field.label}:
+        input(name='physician[#{field.name}]', value='', type='text')
+  div
+    input(type='submit', value='Save')

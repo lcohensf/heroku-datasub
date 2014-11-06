@@ -1,0 +1,5 @@
+h1= title
+a(href='/physicians/#{data.rows[0].physician_id}/edit') Edit this record
+p #{data.rows[0].last_name}, #{data.rows[0].first_name}
+p Specialization: #{data.rows[0].specialization}
+p Id: #{data.rows[0].physician_id}

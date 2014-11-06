@@ -1,0 +1,16 @@
+h1= title
+form(method='post', action='/physicians/#{data.rows[0].physician_id}/update')
+  div
+    label First Name: 
+      input(name='physician[first_name]', value='#{data.rows[0].first_name}' || '', type='text')
+  div
+    label Last Name:  
+      input(name='physician[last_name]', value='#{data.rows[0].last_name}' || '', type='text')
+  div
+    label Specialization:  
+      input(name='physician[specialization]', value='#{data.rows[0].specialization}' || '', type='text')
+  div
+    label ID:
+      input(name='physician[physician_id]', value='#{data.rows[0].physician_id}' || '', type='text', readonly)
+  div
+    input(type='submit', value='Save')
