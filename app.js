@@ -48,7 +48,7 @@ var conn = new sf.Connection({
 });
 */
 
-/*
+
 conn.login(username, password, function (err, uInfo) {
 	if (err) { return console.error(err); }
 	userInfo = uInfo;
@@ -57,7 +57,7 @@ conn.login(username, password, function (err, uInfo) {
 	console.log("User id: " + userInfo.id);
 	console.log("Org id: " + userInfo.organizationId);
 });
-*/
+
 
 
 app.get('/', routes.index);
