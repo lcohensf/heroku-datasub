@@ -6,10 +6,10 @@ var express = require('express'),
 	pg = require('pg'),
 	sf = require('node-salesforce'),
     methodOverride = require('method-override'),
-    bodyParser = require('body-parser');
+    bodyParser = require('body-parser'),
+    strftime = require('strftime');
 
 var pgConnectionString = process.env.DATABASE_URL || 'postgres://postgres:misspiggy@localhost:5432/postgres';
-//var pgConnectionString = process.env.DATABASE_URL || 'postgres://jmrxyqrrxbdrgb:ZGuJtw7cpYX9S-lu6PeiPn5Pqm@ec2-54-83-204-104.compute-1.amazonaws.com:5432/d19ugmjh07smop';
 
 app.use(methodOverride('_method')); // Use in POST requests for other request types: PUT, DELETE, PATCH
 /*// Would leverage like this:
@@ -21,7 +21,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 
-// Using Lynn's DE 1 org
+
 // no Oauth2 client information is required with SOAP API login
 
 var lserv = process.env.LOGIN_SERVER || "https://login.salesforce.com";
@@ -47,7 +47,7 @@ var conn = new sf.Connection({
   accessToken : '00Di0000000g6YX!AQ8AQFFVTE3YF9pdHKGiA2nn8ehnrOZ89xZUJJZ2fVt7uZwQ73v_XdA04RelRA__ImsMohDrDzlrrXn.GpElb8yZcYtwmM_n'
 });
 */
-
+/*
 conn.login(username, password, function (err, uInfo) {
 	if (err) { return console.error(err); }
 	userInfo = uInfo;
@@ -56,7 +56,7 @@ conn.login(username, password, function (err, uInfo) {
 	console.log("User id: " + userInfo.id);
 	console.log("Org id: " + userInfo.organizationId);
 });
-
+*/
 
 
 app.get('/', routes.index);
@@ -74,6 +74,120 @@ app.get('/accounts', function(req,res) {
 		res.render("accounts", { title: 'Accounts in Salesforce - just for testing connection', data: result.records } );
 		
 	});
+});
+
+if (!Date.prototype.toISOString) {
+  (function() {
+
+    function pad(number) {
+      if (number < 10) {
+        return '0' + number;
+      }
+      return number;
+    }
+
+    Date.prototype.toISOString = function() {
+      return this.getUTCFullYear() +
+        '-' + pad(this.getUTCMonth() + 1) +
+        '-' + pad(this.getUTCDate()) +
+        'T' + pad(this.getUTCHours()) +
+        ':' + pad(this.getUTCMinutes()) +
+        ':' + pad(this.getUTCSeconds()) +
+        '.' + (this.getUTCMilliseconds() / 1000).toFixed(3).slice(2, 5) +
+        'Z';
+    };
+
+  }());
+}
+
+app.get('/dt', function(req,res) {
+
+console.log(strftime('%F %H:%M:%S'));
+
+res.status(200);
+res.end();
+			return;
+});
+
+app.get('/testsub', function(req, res) {
+
+	res.render("testsub", { title: 'Enter subscription info'} );
+
+});
+
+app.post('/subscribe', function(req, res) {
+	/*if(req.headers['x-forwarded-proto'] && req.headers['x-forwarded-proto'] === "http") {
+    	console.log("Caught /register over http. Redirecting to: " + "https://" + req.headers.host + req.url);
+    	res.redirect("https://" + req.headers.host + req.url);
+    	return;
+	}*/
+	
+	if (typeof req.body.sf_org_id == 'undefined')  {
+		console.log('Handling /subscribe. Request body does not include required fields. Body: ' + JSON.stringify(req.body));
+		res.status(400).body('Incorrect format.');
+		res.end();
+		return;
+	}
+	console.log('body: '  + JSON.stringify(req.body));
+	
+	var dev = {
+		sf_org_id: req.body.sf_org_id || '',
+		physician_ids: req.body.physician_ids || []
+	};
+	
+
+    pg.connect(pgConnectionString, function(err, client, done) {
+		if (err) {
+			
+			console.log('Error connecting to postgres db: ' + JSON.stringify(err));	
+			res.status(500).body('Internal error');
+			return;
+		}
+		/*
+		INSERT INTO films (code, title, did, date_prod, kind) VALUES
+    	('B6717', 'Tampopo', 110, '1985-02-10', 'Comedy'),
+    	('HG120', 'The Dinner Game', 140, DEFAULT, 'Comedy');*/
+
+		var timestamp = strftime('%F %H:%M:%S');
+		
+		var valsString = '';
+		var first = 'true';
+		for (id in dev.physician_ids) {
+			if (first != 'true') {
+				valsString += ', ';
+			}
+			first = 'false';
+			valsString += ('(\'' + dev.sf_org_id + '\', \'' + id + '\', \'' + timestamp + '\' )');
+		}
+		console.log('valsString before insert: ' + valsString);
+		
+		// just attempt insert; if any records already exists ignore error
+		client.query('INSERT INTO "PhysiciansRefresh" (org_id, physician_id, last_refreshed) ' +
+			'VALUES ' + valsString, 
+			function(err, result) {
+				done(); // release client back to the pool
+				if (err) {	
+					if (err.code == "23505")
+					{
+						// record already exists. that's ok
+						console.log("some records already existed");	
+					} else {
+					
+					console.log('Error inserting physicians subscription: ' + JSON.stringify(err));	
+					res.status(500).body('Internal error');
+					return;
+					}
+				} else {
+			
+					console.log('Physician subscription inserted: ' + valsString);													
+				} 
+		});	
+
+	});		
+
+  res.status(200);
+  res.write('Success.');
+  res.end();
 });
 
 app.get('/physicians', function(req,res) {

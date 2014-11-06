@@ -1,0 +1,16 @@
+h1= title
+form(method='post', action='/subscribe')
+  div
+    label SF Org ID:
+      input(name='sf_org_id', value='', type='text')
+  div
+    label Physician ID 1:
+      input(name='physician_ids[0]', value='', type='text')
+  div
+    label Physician ID 2:
+      input(name='physician_ids[1]', value='', type='text')
+  div
+    label Physician ID 3:
+      input(name='physician_ids[2]', value='', type='text')
+  div
+    input(type='submit', value='Register')
