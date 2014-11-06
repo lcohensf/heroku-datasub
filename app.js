@@ -47,6 +47,7 @@ var conn = new sf.Connection({
   accessToken : '00Di0000000g6YX!AQ8AQFFVTE3YF9pdHKGiA2nn8ehnrOZ89xZUJJZ2fVt7uZwQ73v_XdA04RelRA__ImsMohDrDzlrrXn.GpElb8yZcYtwmM_n'
 });
 */
+
 /*
 conn.login(username, password, function (err, uInfo) {
 	if (err) { return console.error(err); }
@@ -237,9 +238,10 @@ app.post('/physicians/create', function(req, res) {
 			return;
 		}
 		var ph = req.body.physician;
-		var insertArray = [ph.first_name, ph.last_name, ph.specialization];
-		client.query('INSERT INTO "physicians" (first_name, last_name, specialization) ' + 
-               			'VALUES ($1, $2, $3) returning physician_id', insertArray,
+		var timestamp = strftime('%F %H:%M:%S');
+		var insertArray = [ph.first_name, ph.last_name, ph.specialization, timestamp];
+		client.query('INSERT INTO "physicians" (first_name, last_name, specialization, last_modified) ' + 
+               			'VALUES ($1, $2, $3, $4) returning physician_id', insertArray,
                 		function(err, result) {
             done(); // release client back to the pool
             if (err) {
@@ -319,10 +321,12 @@ app.post('/physicians/:id/update', function(req, res) {
 			return;
 		}
 		var ph = req.body.physician;
-		var updateArray = [ph.first_name, ph.last_name, ph.specialization, req.params.id];
+		var timestamp = strftime('%F %H:%M:%S');
+		var updateArray = [ph.first_name, ph.last_name, ph.specialization, timestamp, req.params.id];
+		//console.log('updateArray: ' + JSON.stringify(updateArray));
 
-		client.query('UPDATE "physicians" SET first_name=$1, last_name=$2, specialization=$3 ' + 
-               			'WHERE physician_id = $4 ', updateArray,
+		client.query('UPDATE "physicians" SET first_name=$1, last_name=$2, specialization=$3, last_modified=$4 ' + 
+               			'WHERE physician_id = $5 ', updateArray,
                 		function(err, result) {
             done(); // release client back to the pool
             if (err) {
@@ -336,6 +340,60 @@ app.post('/physicians/:id/update', function(req, res) {
         });
 					
 	});
+});
+
+
+app.get('/testrefresh', function(req,res) {
+	// find all physicians with modification date higher than the list of physicians we have for an org
+	// bulk upsert those physicians
+	// update the last_modified date for those physicians locally
+/*
+SELECT p.physician_id, p.first_name, p.last_name, p.specialization
+  FROM "PhysiciansRefresh" pr, "physicians" p
+  where pr.physician_id = p.physician_id and
+  pr.org_id = 'xyz' and p.last_modified > pr.last_refreshed;
+*/
+	
+   var physicians = [
+   	{ First_Name__c : 'Tom', Last_Name__c : 'Johnson', Specialization__c : 'DentistA', Physician_ID__c : 'Phys7'},
+   	{ First_Name__c : 'Walt', Last_Name__c : 'Bradford', Specialization__c : 'NPA', Physician_ID__c : 'Phys6'}
+   ];
+   conn.bulk.load("Physician__c", "upsert", physicians, function(err, rets) {
+  	if (err) { return console.error(err); }
+  	for (var i=0; i < rets.length; i++) {
+    	if (rets[i].success) {
+     	 console.log("#" + (i+1) + " upserted successfully, id = " + rets[i].id);
+    	} else {
+      	console.log("#" + (i+1) + " error occurred, message = " + rets[i].errors.join(', '));
+    	}
+ 	 }
+ 	 console.log(msg);
+     res.send(msg + '<br>');
+  	 res.end();
+ 
+	});
+	
+	
+/*
+var accounts = [
+{ Name : 'Account #1', ... }, 
+{ Name : 'Account #2', ... }, 
+{ Name : 'Account #3', ... }, 
+...
+];
+
+conn.bulk.load("Account", "upsert", accounts, function(err, rets) {
+  if (err) { return console.error(err); }
+  for (var i=0; i < rets.length; i++) {
+    if (rets[i].success) {
+      console.log("#" + (i+1) + " loaded successfully, id = " + rets[i].id);
+    } else {
+      console.log("#" + (i+1) + " error occurred, message = " + rets[i].errors.join(', '));
+    }
+  }
+  // ...
+});
+*/
 });
 
 
