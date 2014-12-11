@@ -11,6 +11,7 @@
     "jade": "1.6.0",
     "node-salesforce": "0.8.0",
     "pg": "2.11.x",
-    "strftime": "^0.8.2"
+    "strftime": "^0.8.2",
+    "validator": "^3.22.2"
   }
 }

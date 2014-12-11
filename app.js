@@ -7,7 +7,8 @@ var express = require('express'),
 	sf = require('node-salesforce'),
     methodOverride = require('method-override'),
     bodyParser = require('body-parser'),
-    strftime = require('strftime');
+    strftime = require('strftime'),
+    validator = require('validator');
 
 var pgConnectionString = process.env.DATABASE_URL || 'postgres://postgres:misspiggy@localhost:5432/postgres';
 
@@ -125,9 +126,9 @@ app.post('/subscribe', function(req, res) {
     	return;
 	}*/
 	
-	if (typeof req.body.sf_org_id == 'undefined')  {
+	if (typeof req.body.sf_org_id == 'undefined' || typeof req.body.physician_ids == 'undefined')  {
 		console.log('Handling /subscribe. Request body does not include required fields. Body: ' + JSON.stringify(req.body));
-		res.status(400).body('Incorrect format.');
+		res.status(400).body('Error in request');
 		res.end();
 		return;
 	}
@@ -137,7 +138,12 @@ app.post('/subscribe', function(req, res) {
 		sf_org_id: req.body.sf_org_id || '',
 		physician_ids: req.body.physician_ids || []
 	};
-	
+	if (dev.sf_org_id == '' || dev.physician_ids.length < 1)  {
+		console.log('Handling /subscribe. Either org id or physicians ids is empty. Body: ' + JSON.stringify(req.body));
+		res.status(400).body('Error in request');
+		res.end();
+		return;
+	}
 
     pg.connect(pgConnectionString, function(err, client, done) {
 		if (err) {
@@ -156,7 +162,7 @@ app.post('/subscribe', function(req, res) {
 				valsString += ', ';
 			}
 			first = 'false';
-			valsString += ('(\'' + dev.sf_org_id + '\', \'' + dev.physician_ids[ix] + '\', \'' + timestamp + '\' )');
+			valsString += ('(\'' + validator.escape(dev.sf_org_id) + '\', \'' + validator.escape(dev.physician_ids[ix]) + '\', \'' + timestamp + '\' )');
 		}
 		console.log('valsString before insert: ' + valsString);
 		
@@ -187,6 +193,79 @@ app.post('/subscribe', function(req, res) {
   res.status(200);
   res.write('Success.');
   res.end();
+});
+
+app.get('/findPhysicians', function(req, res) {
+	/*if(req.headers['x-forwarded-proto'] && req.headers['x-forwarded-proto'] === "http") {
+    	console.log("Caught /register over http. Redirecting to: " + "https://" + req.headers.host + req.url);
+    	res.redirect("https://" + req.headers.host + req.url);
+    	return;
+	}*/
+	var rawquery = req.param('query');
+	if (typeof rawquery == 'undefined') {
+		console.log('Handling /findPhysicians. Query string parameter not provided.');
+		res.status(400).body('Error in request');
+		res.end();
+		return;
+	}
+	
+	var searchString = validator.escape(rawquery);
+	console.log('in findPhysicians, query string = ' + searchString);
+
+	
+
+    pg.connect(pgConnectionString, function(err, client, done) {
+		if (err) {
+			
+			console.log('Error connecting to postgres db: ' + JSON.stringify(err));	
+			res.status(500).body('Internal error');
+			res.end();
+			return;
+		}
+		/*
+		SELECT first_name, last_name, specialization, physician_id
+		FROM physicians
+		where last_name like 'Joh%' or specialization like '%Pod%'
+		order by last_name, first_name limit 100;
+		*/
+		var queryStr = 'SELECT first_name, last_name, specialization, physician_id FROM "physicians" where ';
+		queryStr = queryStr + 'last_name like \'' + searchString + '%\' or specialization like \'%' + searchString + '%\' ';
+		queryStr = queryStr +  'order by last_name, first_name limit 100';
+		//console.log('queryStr = ' + queryStr);
+		client.query(queryStr, function(err, result) {
+			done(); // release client back to the pool
+			if (err) {
+				console.log('Unable to retrieve physician records from postgres db. - ' + JSON.stringify(err));
+				res.status(500).body('error retrieving data');
+				res.end();
+				return;
+			}
+			console.log("total physicians returned: " + result.rows.length);
+			//console.log("result: " + JSON.stringify(result));
+			//res.render("physicians/physicians", { title: 'Physicians', data: result } );
+			// build JSON body to return 
+			var searchResults = {physicians : []};
+			for (i = 0; i < result.rows.length; i++) {
+				var row = result.rows[i];
+				//console.log('row: ' + JSON.stringify(row));
+				var physician = {
+					last_name : row.last_name,
+					first_name : row.first_name,
+					specialization : row.specialization,
+					physician_id : row.physician_id
+				};
+				//console.log('physician: ' + JSON.stringify(physician));
+				searchResults.physicians.push(physician);
+			}
+			//console.log('searchResults: ' + JSON.stringify(searchResults));
+			res.status(200);
+			res.write(JSON.stringify(searchResults));
+			res.end();
+		});	
+		
+	});		
+
+
 });
 
 app.get('/physicians', function(req,res) {
