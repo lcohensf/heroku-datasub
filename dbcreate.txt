@@ -1,0 +1,65 @@
+-- Sequence: "PhysicianIdsequence"
+
+-- DROP SEQUENCE "PhysicianIdsequence";
+
+CREATE SEQUENCE "PhysicianIdsequence"
+  INCREMENT 1
+  MINVALUE 0
+  MAXVALUE 9223372036854775807
+  START 29
+  CACHE 1;
+ALTER TABLE "PhysicianIdsequence"
+  OWNER TO jmrxyqrrxbdrgb;
+  
+-- Sequence: "PhysSubscribeSequence"
+
+-- DROP SEQUENCE "PhysSubscribeSequence";
+
+CREATE SEQUENCE "PhysSubscribeSequence"
+  INCREMENT 0
+  MINVALUE 0
+  MAXVALUE 0
+  START 0
+  CACHE 0;
+ALTER TABLE "PhysSubscribeSequence"
+  OWNER TO jmrxyqrrxbdrgb;
+
+
+-- Table: "PhysiciansRefresh"
+
+-- DROP TABLE "PhysiciansRefresh";
+
+CREATE TABLE "PhysiciansRefresh"
+(
+  physician_id text,
+  last_refreshed timestamp with time zone,
+  org_id text,
+  subscribe_id text NOT NULL DEFAULT ('Sub'::text || (nextval('"PhysSubscribeSequence"'::regclass))::text),
+  CONSTRAINT "PhysiciansRefreshKey" PRIMARY KEY (subscribe_id)
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE "PhysiciansRefresh"
+  OWNER TO jmrxyqrrxbdrgb;
+
+-- Table: physicians
+
+-- DROP TABLE physicians;
+
+CREATE TABLE physicians
+(
+  first_name text,
+  last_name text,
+  specialization text,
+  physician_id text NOT NULL DEFAULT ('Phys'::text || (nextval('"PhysicianIdsequence"'::regclass))::text),
+  last_modified timestamp with time zone,
+  CONSTRAINT primarykey PRIMARY KEY ()
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE physicians
+  OWNER TO jmrxyqrrxbdrgb;
+
+

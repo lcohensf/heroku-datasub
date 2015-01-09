@@ -429,7 +429,7 @@ app.get('/testrefresh', function(req,res) {
   		'where pr.physician_id = p.physician_id and ' +
   		'pr.org_id = \'' + orgID + '\' and p.last_modified > pr.last_refreshed limit 200';
 
-
+	console.log('testrefresh, query = ' + qstr);
 	pg.connect(pgConnectionString, function(err, client, done) {
 		if (err) {
 			console.log('Unable to connect to postgres db. ' + JSON.stringify(err));
