@@ -12,6 +12,7 @@ var express = require('express'),
 
 var pgConnectionString = process.env.DATABASE_URL || 'postgres://postgres:misspiggy@localhost:5432/postgres';
 
+
 app.use(methodOverride('_method')); // Use in POST requests for other request types: PUT, DELETE, PATCH
 /*// Would leverage like this:
 // <form method="POST" action="/resource?_method=DELETE">
@@ -51,6 +52,8 @@ var conn = new sf.Connection({
 });
 */
 
+var runlocal = pgConnectionString.search('localhost') != -1;
+if (!runlocal ) { // remove this after testing, preventing the login to salesforce for now when running locally
 
 conn.login(username, password, function (err, uInfo) {
 	if (err) { return console.error(err); }
@@ -60,10 +63,10 @@ conn.login(username, password, function (err, uInfo) {
 	console.log("User id: " + userInfo.id);
 	console.log("Org id: " + userInfo.organizationId);
 });
+}
 
-
-
-app.get('/', routes.index);
+// refactoring routes.... 
+routes(app, pgConnectionString);
 
 // Accounts listing just for testing purposes
 app.get('/accounts', function(req,res) {
@@ -106,10 +109,10 @@ if (!Date.prototype.toISOString) {
 
 app.get('/dt', function(req,res) {
 
-console.log(strftime('%F %H:%M:%S'));
+	console.log(strftime('%F %H:%M:%S'));
 
-res.status(200);
-res.end();
+	res.status(200);
+	res.end();
 			return;
 });
 
@@ -268,156 +271,7 @@ app.get('/findPhysicians', function(req, res) {
 
 });
 
-app.get('/physicians', function(req,res) {
 
-	pg.connect(pgConnectionString, function(err, client, done) {
-		if (err) {
-			console.log('Unable to connect to postgres db. ' + JSON.stringify(err));
-			res.status(500).body('error retrieving data');
-			return;
-		}
-		client.query('SELECT first_name, last_name, specialization, physician_id FROM "physicians" order by last_name, first_name limit 100',  
-			function(err, result) {
-				done(); // release client back to the pool
-				if (err) {
-					console.log('Unable to retrieve physician records from postgres db. - ' + JSON.stringify(err));
-					res.status(500).body('error retrieving data');
-					return;
-				}
-				console.log("total physicians returned: " + result.rows.length);
-				res.render("physicians/physicians", { title: 'Physicians', data: result } );
-			});					
-
-		
-	});
-});
-
-// form to create a new physician
-app.get('/physicians/new', function(req, res) {
-	var phyFields = {
-		fields: [{name: "first_name", label: "First name"}, 
-		{name: "last_name", label: "Last name"},
-		{name: "specialization", label: "Specialization"}
-		]
-	};
-	res.render('physicians/new', { title: 'New Physician', data: phyFields })
-});
-
-// create the physician in postgres
-app.post('/physicians/create', function(req, res) {
-
-	console.log('got this for physician data: ' + JSON.stringify(req.body.physician));
-	
-	pg.connect(pgConnectionString, function(err, client, done) {
-		if (err) {
-			console.log('Unable to connect to postgres db. ' + JSON.stringify(err));
-			res.status(500).body('error retrieving data');
-			return;
-		}
-		var ph = req.body.physician;
-		var timestamp = strftime('%F %H:%M:%S');
-		var insertArray = [ph.first_name, ph.last_name, ph.specialization, timestamp];
-		client.query('INSERT INTO "physicians" (first_name, last_name, specialization, last_modified) ' + 
-               			'VALUES ($1, $2, $3, $4) returning physician_id', insertArray,
-                		function(err, result) {
-            done(); // release client back to the pool
-            if (err) {
-            	console.log('Unable to insert physician to postgres db. ' + JSON.stringify(err));
-            	res.status(500).body('error retrieving data');
-				return;
-            } else {
-            	res.redirect('/physicians/'+result.rows[0].physician_id);
-				res.end();                 
-            } 
-        });
-					
-	});
-			
-});
-
-// display the physician
-app.get('/physicians/:id', function(req, res) {
-	
-	pg.connect(pgConnectionString, function(err, client, done) {
-		if (err) {
-			console.log('Unable to connect to postgres db. ' + JSON.stringify(err));
-			res.status(500).body('error retrieving data');
-			return;
-		}
-		client.query('SELECT first_name, last_name, specialization, physician_id FROM "physicians" where physician_id = \'' + req.params.id + '\'', 
-			function(err, result) {
-				done(); // release client back to the pool
-				if (err) {
-					console.log('Unable to retrieve physician record for id: ' + req.params.id);
-					res.status(500).body('error retrieving data');
-					return;
-				}
-				
-				res.render("physicians/show", { title: 'Physician Details', data: result } );
-			});					
-
-		
-	});
-});
-
-// form to update an existing physician
-app.get('/physicians/:id/edit', function(req, res) {
-
-	pg.connect(pgConnectionString, function(err, client, done) {
-		if (err) {
-			console.log('Unable to connect to postgres db. ' + JSON.stringify(err));
-			res.status(500).body('error retrieving data');
-			return;
-		}
-		client.query('SELECT first_name, last_name, specialization, physician_id FROM "physicians" where physician_id = \'' + req.params.id + '\'', 
-			function(err, result) {
-				done(); // release client back to the pool
-				if (err) {
-					console.log('Unable to retrieve physician record for id: ' + req.params.id);
-					res.status(500).body('error retrieving data');
-					return;
-				}
-				//console.log("result: " + JSON.stringify(result));
-				res.render("physicians/edit", { title: 'Edit Physician', data: result } );
-			});					
-
-		
-	});
-});
-
-// update the physician in postgres
-app.post('/physicians/:id/update', function(req, res) {
-	
-	console.log('got this for physician data: ' + JSON.stringify(req.body.physician));
-	console.log('req.params.id: ' + req.params.id);
-	
-	pg.connect(pgConnectionString, function(err, client, done) {
-		if (err) {
-			console.log('Unable to connect to postgres db. ' + JSON.stringify(err));
-			res.status(500).body('error retrieving data');
-			return;
-		}
-		var ph = req.body.physician;
-		var timestamp = strftime('%F %H:%M:%S');
-		var updateArray = [ph.first_name, ph.last_name, ph.specialization, timestamp, req.params.id];
-		//console.log('updateArray: ' + JSON.stringify(updateArray));
-
-		client.query('UPDATE "physicians" SET first_name=$1, last_name=$2, specialization=$3, last_modified=$4 ' + 
-               			'WHERE physician_id = $5 ', updateArray,
-                		function(err, result) {
-            done(); // release client back to the pool
-            if (err) {
-            	console.log('Unable to update physician to postgres db. ' + JSON.stringify(err));
-            	res.status(500).body('error retrieving data');
-				return;
-            } else {
-            	res.redirect('/physicians/'+ph.physician_id);
-				res.end();                  
-            } 
-        });
-					
-	});
-});
 
 
 app.get('/testrefresh', function(req,res) {
