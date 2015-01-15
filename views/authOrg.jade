@@ -1,0 +1,13 @@
+h1= title
+form(method='post', action='/saveOrg')
+  div
+    label Salesforce Org Id (18 character version):
+      input(name='org_id', value='#{defaults.orgId}', type='text')
+  div
+    label Username for API connections:
+      input(name='uname', type='text')
+  div
+    label Password followed by Security Token:
+      input(name='pw', type='text')      
+  div
+    input(type='submit', value='Authorize Connection to Org')

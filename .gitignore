@@ -1,1 +1,8 @@
 node_modules/**
+keys/**
+*.asc
+*.key
+SFnotes.txt
+README
+README.md
+*.sh

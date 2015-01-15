@@ -1,27 +1,17 @@
 var express = require('express'),
 	app = express(),
 	routes = require('./routes'),
-	errorHandler = require('errorhandler'),
-	path = require('path'),
+	//errorHandler = require('errorhandler'),
+	
 	pg = require('pg'),
 	sf = require('node-salesforce'),
-    methodOverride = require('method-override'),
-    bodyParser = require('body-parser'),
+
     strftime = require('strftime'),
-    validator = require('validator');
+    validator = require('validator'),
+    cp = require('child_process');
 
 var pgConnectionString = process.env.DATABASE_URL || 'postgres://postgres:misspiggy@localhost:5432/postgres';
-
-
-app.use(methodOverride('_method')); // Use in POST requests for other request types: PUT, DELETE, PATCH
-/*// Would leverage like this:
-// <form method="POST" action="/resource?_method=DELETE">
-// <button type="submit">Delete resource</button>
-// </form>
-*/
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-
+app.set('port', process.env.PORT || 3001); // use heroku's dynamic port or 3001 if localhost
 
 
 // no Oauth2 client information is required with SOAP API login
@@ -32,11 +22,6 @@ var username = process.env.USERNAME || 'lcohen@fdataserv.poc';
 var password = process.env.PASSWORD || '8DemoISV!0vRbUsQmV8RwbR5WLjwP0LZPD';
 // hardcoding the orgID for now, not yet multi-tenant
 var orgID = '00Dj0000000I5ifEAC';
-
-app.set('port', process.env.PORT || 3001); // use heroku's dynamic port or 3001 if localhost
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
-
 
 var userInfo;
 
@@ -52,8 +37,8 @@ var conn = new sf.Connection({
 });
 */
 
-var runlocal = pgConnectionString.search('localhost') != -1;
-if (!runlocal ) { // remove this after testing, preventing the login to salesforce for now when running locally
+var intesting = pgConnectionString.search('localhost') != -1;
+if (!intesting ) { // remove this after testing, preventing the login to salesforce for now when running locally
 
 conn.login(username, password, function (err, uInfo) {
 	if (err) { return console.error(err); }
@@ -65,12 +50,17 @@ conn.login(username, password, function (err, uInfo) {
 });
 }
 
-// refactoring routes.... 
+// not done refactoring routes.... 
 routes(app, pgConnectionString);
+
+
+
 
 // Accounts listing just for testing purposes
 app.get('/accounts', function(req,res) {
 
+	//req.params.orgid
+	
 	conn.query('select id, name from account limit 10', function(err, result) {
 		if (err) {console.error(err); res.send('Error'); res.end; }
 		console.log("total: " + result.totalSize);
@@ -271,8 +261,36 @@ app.get('/findPhysicians', function(req, res) {
 
 });
 
+app.get('/dorefresh', function(req,res) {
+	/*	//The following forky call spawns the process over and over again... keep code here in case we want to 
+        //play with this some more
+        var forky = require('forky');
+		forky(__dirname + '/refresh.js', 1, function(err) {
+		if (err) {
+			console.log('Unable to fork refresh.js - ' + JSON.stringify(err));
+			res.status(500).body('error refreshing');
+			res.end();
+		} else {
+			console.log("you spawned 1 worker for refresh.js ");
+			res.status(200);
+  			res.write('Success.');
+  			res.end();
+		}
+  		
+	});
+	*/
+	// just fork the child process and don't worry about results 
+	cp.fork(__dirname + '/refresh.js');
+	res.status(200);
+  	res.write('Check logs for results.');
+  	res.end();
+});
 
+var server = app.listen(app.get('port'), function() {
+	console.log('Listening on port %d', server.address().port);
+});
 
+/*
 
 app.get('/testrefresh', function(req,res) {
 	// find all physicians with modification date higher than the list of physicians we have for an org
@@ -332,8 +350,8 @@ app.get('/testrefresh', function(req,res) {
       						console.log("#" + (i+1) + " error occurred, message = " + rets[i].errors.join(', '));
     					}
  	 				}
- 	 				/* UPDATE physicians SET last_modified='2014-11-06 15:34:00'
- 						WHERE physician_id in ('Phys6', 'Phys7'); */
+ 	 				// UPDATE physicians SET last_modified='2014-11-06 15:34:00'
+ 					//	WHERE physician_id in ('Phys6', 'Phys7'); 
  					var timestamp = strftime('%F %H:%M:%S');
  					var physIDs = '';
  					var first = 'true';
@@ -368,8 +386,9 @@ app.get('/testrefresh', function(req,res) {
 		
 
 });
+*/
 
-
+/*
 app.get('/testbulk', function(req,res) {
 	// generate a number for creation of records with unique names
 	var startNum = Number((Math.random() * 100) + 1).toFixed(0); // numbers between 1 and 100
@@ -397,12 +416,11 @@ app.get('/testbulk', function(req,res) {
   		res.end();
 	});
 });
+*/
 
 // error handling middleware should be loaded after the loading the routes
+/* replaced with our own error handler 
 if ('development' == app.get('env')) {
   app.use(errorHandler());
-}
+}*/
 
-var server = app.listen(app.get('port'), function() {
-	console.log('Listening on port %d', server.address().port);
-});

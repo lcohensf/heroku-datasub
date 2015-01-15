@@ -62,4 +62,14 @@ WITH (
 ALTER TABLE physicians
   OWNER TO jmrxyqrrxbdrgb;
 
+CREATE TABLE oauth
+(
+  org_id text NOT NULL,
+  uname bytea,
+  pw bytea
+)
+WITH (
+  OIDS=FALSE
+);
+
 

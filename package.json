@@ -12,6 +12,8 @@
     "node-salesforce": "0.8.0",
     "pg": "2.11.x",
     "strftime": "^0.8.2",
-    "validator": "^3.22.2"
+    "validator": "^3.22.2",
+    "fs": "0.0.2",
+    "jwt-simple": "^0.2.0"
   }
 }
