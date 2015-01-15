@@ -20,6 +20,8 @@ var noncryptoselect = 	'SELECT org_id, uname, pw FROM oauth where org_id = $1';
 
 var jwtSecret = process.env.JWTSecret || 'N3c8h3h7ljzzap56tsuxMw';
 var localmode = true;
+var pubkey = '';
+var privkey = '';
 
 function OrgsDAO(pgConnectionString) {
 
@@ -31,8 +33,7 @@ function OrgsDAO(pgConnectionString) {
     }
      
     localmode = pgConnectionString.search('localhost') != -1;
-    var pubkey = '';
-	var privkey = '';
+
     if (localmode == true) {
 		pubkey = fs.readFileSync('./public.key').toString();
 		privkey = fs.readFileSync('./private.key').toString();
@@ -110,6 +111,8 @@ function OrgsDAO(pgConnectionString) {
     */
 
 }
+
+// helper methods, not exported
 
 // callback(err, conn)
 function getConnection(pgConnectionString, orgId, callback) {
