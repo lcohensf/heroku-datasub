@@ -70,7 +70,7 @@ function OrgsDAO(pgConnectionString) {
 					console.log("Inserted new org");
 					
 					// push JWT token to SF org
-					upsertJWTToken(pgConnectionString, orgId, callback);              
+					return upsertJWTToken(pgConnectionString, orgId, callback);              
 				});			
 			});
 		});

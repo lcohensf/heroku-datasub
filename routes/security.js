@@ -3,7 +3,7 @@ function SecurityHandler (pgConnectionString) {
 	var localmode = pgConnectionString.search('localhost') != -1;
 
     this.requireHTTPSMiddleware = function(req, res, next) {    	
-		if (!localmode ) { 
+		if (!localmode) { 
 			if (req.headers['x-forwarded-proto'] && req.headers['x-forwarded-proto'] === "http") {
 				console.log("Caught request over http. Redirecting to: " + "https://" + req.headers.host + req.url);
 				return res.redirect("https://" + req.headers.host + req.url);
@@ -23,3 +23,5 @@ function SecurityHandler (pgConnectionString) {
 }
 
 module.exports = SecurityHandler;
+
+

@@ -1,4 +1,5 @@
 var Physicians = require('./physicians'),
+	PhysiciansREST = require('./physiciansREST'),
 	Orgs = require('./orgs'),
     ErrorHandler = require('./error').errorHandler,
     SecurityHandler = require('./security'),
@@ -8,6 +9,7 @@ var Physicians = require('./physicians'),
 
 module.exports = exports = function(app, pgConnectionString) {
 	var physicians = new Physicians(pgConnectionString);
+	var physiciansREST = new PhysiciansREST(pgConnectionString);
 	var securityHandler = new SecurityHandler(pgConnectionString);
 	var orgs = new Orgs(pgConnectionString);
 	
@@ -35,9 +37,11 @@ module.exports = exports = function(app, pgConnectionString) {
 	app.get('/authOrg', orgs.authorizeOrg);
 	app.post('/saveOrg', orgs.saveOrg);
 	app.get('/saveOrg', function(req, res, next) {
-		return next('GET /saveOrg not supported.');
+		return next({message: 'GET /saveOrg not supported.'});
 	});
 
+	app.post('/subscribe', physiciansREST.subscribe);
+	app.get('/findPhysicians', physiciansREST.findPhysicians);
 	
 	/* Postgres database - physicians CRUD UI */
 	// display list of physicians -- this implementation limits the list shown, pagination not yet supported
