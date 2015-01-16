@@ -53,7 +53,7 @@ function PhysiciansDAO(pgConnectionString) {
     
     // callback(err)
     this.subscribeToPhysicians = function (sf_org_id, physician_ids, callback) {
-        console.log("in subscribeToPhysicians, org id " + sf_ord_id);
+        console.log("in subscribeToPhysicians, org id " + sf_org_id);
 
 		pg.connect(pgConnectionString, function(err, client, done) {
 			if (err) return callback(err, null);
