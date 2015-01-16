@@ -22,8 +22,9 @@ module.exports = exports = function(app, pgConnectionString) {
 	app.set('views', path.join(__dirname, '../views'));
 	app.set('view engine', 'jade');
 	
-	app.use(securityHandler.requireHTTPSMiddleware);
-	app.use(securityHandler.requirePostHeadersMiddleware);
+	// need to fix the redirect... it's catching http requests but not redirecting correctly
+	//app.use(securityHandler.requireHTTPSMiddleware);
+	//app.use(securityHandler.requirePostHeadersMiddleware);
 	
 	
 	app.get('/',  function(req,res) {
