@@ -18,7 +18,7 @@ function PhysiciansREST (pgConnectionString) {
 		var sf_org_id = req.body.sf_org_id;
 		var physician_ids = req.body.physician_ids;
 
-		sf_org_id = validator.escape(sf_ord_id);
+		sf_org_id = validator.escape(sf_org_id);
 
 		for (var i = 0; i < physician_ids.length; i++) {
 			physician_ids[i] = validator.escape(physician_ids[i]);
