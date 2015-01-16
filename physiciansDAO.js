@@ -62,12 +62,12 @@ function PhysiciansDAO(pgConnectionString) {
 		
 			var valsString = '';
 			var first = 'true';
-			for (pid in physician_ids) {
+			for (ix in physician_ids) {
 				if (first != 'true') {
 					valsString += ', ';
 				}
 				first = 'false';
-				valsString += ('(\'' + sf_org_id + '\', \'' + pid + '\', \'' + timestamp + '\' )');
+				valsString += ('(\'' + sf_org_id + '\', \'' + physician_ids[ix] + '\', \'' + timestamp + '\' )');
 			}
 			console.log('valsString before insert: ' + valsString);
 		
