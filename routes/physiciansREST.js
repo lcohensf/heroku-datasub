@@ -1,6 +1,6 @@
 var PhysiciansDAO = require('../physiciansDAO').PhysiciansDAO,
-var OrgsDAO = require('../orgsDAO').OrgsDAO,
-validator = require('validator'); // Helper to sanitize form input
+	OrgsDAO = require('../orgsDAO').OrgsDAO,
+	validator = require('validator'); // Helper to sanitize form input
 
 /*  PhysiciansREST must be constructed with a postgres db connection string */
 function PhysiciansREST (pgConnectionString) {
