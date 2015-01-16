@@ -20,26 +20,24 @@ function PhysiciansREST (pgConnectionString) {
 			console.log('Handling /subscribe. Request body does not include required fields. Body: ' + JSON.stringify(req.body));
 			return next({message: 'Org id, token, and physician IDs required in request body.'});
 		}
+		console.log('body: '  + JSON.stringify(req.body));
 		
-		// verifyOrgAndToken is a synchronous function, so no need to nest rest of this function inside the callback
 		orgs.verifyOrgAndToken(sf_org_id, token, function(err) {
 			if (err) return next(err);
-		});
-		
-		console.log('body: '  + JSON.stringify(req.body));	
-
-		sf_org_id = validator.escape(sf_org_id);
-
-		for (var i = 0; i < physician_ids.length; i++) {
-			physician_ids[i] = validator.escape(physician_ids[i]);
-		}		
-		
-		physicians.subscribeToPhysicians(sf_org_id, physician_ids, function(err) {
-			if (err) return next(err);
 			
-			res.status(200);
-	  		res.write('Success.');
-	  		res.end();
+			sf_org_id = validator.escape(sf_org_id);
+
+			for (var i = 0; i < physician_ids.length; i++) {
+				physician_ids[i] = validator.escape(physician_ids[i]);
+			}		
+		
+			physicians.subscribeToPhysicians(sf_org_id, physician_ids, function(err) {
+				if (err) return next(err);
+			
+				res.status(200);
+				res.write('Success.');
+				res.end();
+			});
 		});
 		
 	}
@@ -55,20 +53,19 @@ function PhysiciansREST (pgConnectionString) {
 			return next({message: 'Query string, org id, and token required in request body'});
 		}
 		
-		// verifyOrgAndToken is a synchronous function, so no need to nest rest of this function inside the callback
 		orgs.verifyOrgAndToken(sf_org_id, token, function(err) {
 			if (err) return next(err);
-		});
-	
-		searchString = validator.escape(searchString);
-		console.log('in findPhysicians, query string = ' + searchString);
-
-		physicians.getPhysiciansMatchingQuery(searchString, function(err, searchResults) {
-			if (err) return next(err);
 			
-			res.status(200);
-			res.write(JSON.stringify(searchResults));
-			res.end();
+			searchString = validator.escape(searchString);
+			console.log('in findPhysicians, query string = ' + searchString);
+
+			physicians.getPhysiciansMatchingQuery(searchString, function(err, searchResults) {
+				if (err) return next(err);
+			
+				res.status(200);
+				res.write(JSON.stringify(searchResults));
+				res.end();
+			});
 		});
 	}
 
