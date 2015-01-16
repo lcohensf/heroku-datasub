@@ -1,22 +1,32 @@
 var PhysiciansDAO = require('../physiciansDAO').PhysiciansDAO,
+var OrgsDAO = require('../orgsDAO').OrgsDAO,
 validator = require('validator'); // Helper to sanitize form input
 
 /*  PhysiciansREST must be constructed with a postgres db connection string */
 function PhysiciansREST (pgConnectionString) {
     var physicians = new PhysiciansDAO(pgConnectionString);
+    var orgs = new OrgsDAO(pgConnectionString);
 
 
 	this.subscribe = function(req, res, next) {
-		console.log('in Physicians.subscribe');
-		if (typeof req.body.sf_org_id == 'undefined' || typeof req.body.physician_ids == 'undefined' ||
-			req.body.sf_org_id == '' || req.body.physician_ids.length < 1)  {
-			console.log('Handling /subscribe. Request body does not include required fields. Body: ' + JSON.stringify(req.body));
-			return next({message: 'Org id, token, and physician IDs required in request.'});
-		}
-		console.log('body: '  + JSON.stringify(req.body));
+		console.log('in PhysiciansREST.subscribe');
 		
 		var sf_org_id = req.body.sf_org_id;
+		var token = req.body.jwt_token;
 		var physician_ids = req.body.physician_ids;
+		
+		if (typeof sf_org_id == 'undefined' || typeof physician_ids == 'undefined' || typeof token == 'undefined' ||
+			sf_org_id == '' || token == '' || physician_ids < 1)  {
+			console.log('Handling /subscribe. Request body does not include required fields. Body: ' + JSON.stringify(req.body));
+			return next({message: 'Org id, token, and physician IDs required in request body.'});
+		}
+		
+		// verifyOrgAndToken is a synchronous function, so no need to nest rest of this function inside the callback
+		orgs.verifyOrgAndToken(sf_org_id, token, function(err) {
+			if (err) return next(err);
+		});
+		
+		console.log('body: '  + JSON.stringify(req.body));	
 
 		sf_org_id = validator.escape(sf_org_id);
 
@@ -35,12 +45,20 @@ function PhysiciansREST (pgConnectionString) {
 	}
 
 	this.findPhysicians = function(req, res, next) {
-
+		console.log('in PhysiciansREST.findPhysicians');
 		var searchString = req.body.query;
-		if (typeof searchString == 'undefined') {
-			console.log('Handling /findPhysicians. Query string parameter not provided.');
-			return next({message: 'Query string parameter required.'});
+		var sf_org_id = req.body.sf_org_id;
+		var token = req.body.jwt_token;
+		
+		if (typeof searchString == 'undefined' || typeof sf_org_id == 'undefined' || typeof token == 'undefined') {
+			console.log('Handling /findPhysicians. Query string, org id, and token required in request body.');
+			return next({message: 'Query string, org id, and token required in request body'});
 		}
+		
+		// verifyOrgAndToken is a synchronous function, so no need to nest rest of this function inside the callback
+		orgs.verifyOrgAndToken(sf_org_id, token, function(err) {
+			if (err) return next(err);
+		});
 	
 		searchString = validator.escape(searchString);
 		console.log('in findPhysicians, query string = ' + searchString);

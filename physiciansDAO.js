@@ -110,6 +110,8 @@ function PhysiciansDAO(pgConnectionString) {
     
     // callback(err, searchResults) -- searchResults is in JSON array
     this.getPhysiciansMatchingQuery = function(searchString, callback) {
+    	console.log('PhysiciansDAO.getPhysiciansMatchingQuery, query: ' + searchString);
+    	
 		pg.connect(pgConnectionString, function(err, client, done) {
 			if (err) return callback(err, null);
 				

@@ -76,6 +76,19 @@ function OrgsDAO(pgConnectionString) {
 		});
     }
     
+    // this is a synchronous function, but use callback to pass back any error
+    // callback(err)
+    this.verifyOrgAndToken = function (orgId, token, callback) {
+        console.log("verifying org: " + orgId);
+        var tokenStr = jwt.encode({orgid: orgId}, jwtSecret);
+        
+        if (tokenStr == token) {
+        	return callback(null);
+        } else {
+        	return callback({message: 'Invalid token for org: ' + orgId});
+        }
+    }
+    
 	// get all org records
 	/*
     this.getPhysicians = function(num, callback) {
