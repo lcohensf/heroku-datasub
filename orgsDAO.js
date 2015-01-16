@@ -162,6 +162,7 @@ function getConnection(pgConnectionString, orgId, callback) {
 				uname = result.rows[0].uname_decrypt;
 				pw = result.rows[0].pw_decrypt;
 			}
+			// no Oauth2 client secret/key pair is required with SOAP API login
 			var lserv = process.env.LOGIN_SERVER || "https://login.salesforce.com";
 			var conn = new sf.Connection({loginUrl: lserv});
 			conn.login(uname, pw, function (err, uInfo) {
