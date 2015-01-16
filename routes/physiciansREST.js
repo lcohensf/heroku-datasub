@@ -36,7 +36,7 @@ function PhysiciansREST (pgConnectionString) {
 
 	this.findPhysicians = function(req, res, next) {
 
-		var searchString = req.param('query');
+		var searchString = req.body.query;
 		if (typeof searchString == 'undefined') {
 			console.log('Handling /findPhysicians. Query string parameter not provided.');
 			return next({message: 'Query string parameter required.'});

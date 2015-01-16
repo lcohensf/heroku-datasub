@@ -41,9 +41,7 @@ WITH (
   OIDS=FALSE
 );
 
-ALTER TABLE "PhysiciansRefresh"
-  ADD CONSTRAINT "PhysiciansRefresh_org_id_physician_id_key" UNIQUE(org_id, physician_id);
-  
+ 
   
 ALTER TABLE "PhysiciansRefresh"
   OWNER TO jmrxyqrrxbdrgb;

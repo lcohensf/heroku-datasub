@@ -41,7 +41,7 @@ module.exports = exports = function(app, pgConnectionString) {
 	});
 
 	app.post('/subscribe', physiciansREST.subscribe);
-	app.get('/findPhysicians', physiciansREST.findPhysicians);
+	app.post('/findPhysicians', physiciansREST.findPhysicians);
 	
 	/* Postgres database - physicians CRUD UI */
 	// display list of physicians -- this implementation limits the list shown, pagination not yet supported
