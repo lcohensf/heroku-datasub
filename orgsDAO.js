@@ -186,8 +186,7 @@ function upsertJWTToken(pgConnectionString, orgid, callback) {
 
 		var tokenStr = jwt.encode({orgid: orgid}, jwtSecret);
 		var restBody = {
-			JWTToken: tokenStr,
-			OrgId: orgid
+			JWTToken: tokenStr
 		};
 		
 		conn.apex.post("/SetAPIKeys/", restBody, function(res) {
