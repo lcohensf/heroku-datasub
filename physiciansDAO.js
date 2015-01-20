@@ -108,6 +108,24 @@ function PhysiciansDAO(pgConnectionString) {
 		});
     }
     
+    // callback(err, returnOrgId, result)
+    this.getPhysiciansForRefresh = function(orgId, callback) {
+    	console.log('in getPhysiciansForRefresh');
+		pg.connect(pgConnectionString, function(err, client, done) {
+			if (err) return callback(err, null);
+			var selectRefreshRecords = 'SELECT p.physician_id, p.first_name, p.last_name, p.specialization ' +
+  				'FROM "PhysiciansRefresh" pr, "physicians" p ' + 
+  				'where  pr.org_id = \'' + orgId + '\' and p.last_modified > pr.last_refreshed and pr.physician_id = p.physician_id';
+
+			client.query(selectRefreshRecords, function(err, result) {
+					done(); // release client back to the pool
+					if (err) return callback(err, null, null);
+					console.log("for orgId: " + orgId + ", retrieved total physicians to refresh: " + result.rows.length);
+					return callback(null, orgId, result);
+			});					
+		});
+    }
+    
     // callback(err, searchResults) -- searchResults is in JSON array
     this.getPhysiciansMatchingQuery = function(searchString, callback) {
     	console.log('PhysiciansDAO.getPhysiciansMatchingQuery, query: ' + searchString);

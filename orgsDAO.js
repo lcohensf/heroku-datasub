@@ -18,6 +18,12 @@ var pgcryptoselect = 'SELECT oauth.org_id, pgp_pub_decrypt(oauth.uname, keys.pri
 		
 var noncryptoselect = 	'SELECT org_id, uname, pw FROM oauth where org_id = $1';
 
+var pgcryptoselectall = 'SELECT oauth.org_id, pgp_pub_decrypt(oauth.uname, keys.privkey) as uname_decrypt, '
+		+ 'pgp_pub_decrypt(oauth.pw, keys.privkey) as pw_decrypt '
+		+ 'FROM oauth CROSS JOIN (SELECT dearmor($2) as privkey) as keys';
+		
+var noncryptoselectall = 	'SELECT org_id, uname, pw FROM oauth';
+
 var jwtSecret = process.env.JWTSecret || 'N3c8h3h7ljzzap56tsuxMw';
 var localmode = true;
 var pubkey = '';
@@ -76,7 +82,21 @@ function OrgsDAO(pgConnectionString) {
 		});
     }
     
-
+    // callback(err, result)
+    this.getAllOrgs = function(callback) {
+    	pg.connect(pgConnectionString, function(err, client, done) {
+			if (err) return callback(err, null);
+			var qstr = 'SELECT org_id FROM oauth';
+				
+			client.query(qstr, function(err, result) {
+					done(); // release client back to the pool
+					if (err) return callback(err, null);
+					console.log("total orgs returned: " + result.rows.length);
+					return callback(null, result);
+			});					
+		});
+    }
+    
     // callback(err)
     this.verifyOrgAndToken = function (orgId, token, callback) {
         console.log("verifying org: " + orgId);
@@ -89,43 +109,72 @@ function OrgsDAO(pgConnectionString) {
         }
     }
     
-	// get all org records
-	/*
-    this.getPhysicians = function(num, callback) {
-		pg.connect(pgConnectionString, function(err, client, done) {
-			if (err) return callback(err, null);
-			
-			var qstr = 'SELECT first_name, last_name, specialization, physician_id FROM "physicians" order by last_name, first_name limit ' + num;
-			client.query(qstr, function(err, result) {
-					done(); // release client back to the pool
-					if (err) return callback(err, null);
-					console.log("total physicians returned: " + result.rows.length);
-					callback(err, result);
-				});					
-		});
-    }
-    */
+    // callback(err, returnOrgId)
+	this.refreshPhysiciansInOrg = function(orgid, physiciansResults, callback) {
+		console.log("refreshing org: " + orgid);
+		getConnection(pgConnectionString, orgid, function(err, conn) {
+			if (err) return callback(err, null); 
 
-	// get org record by ID
-	/*
-    this.getPhysicianById = function(id, callback) {
-        pg.connect(pgConnectionString, function(err, client, done) {
-			if (err) return callback(err, null);
-			
-			var qstr = 'SELECT first_name, last_name, specialization, physician_id FROM "physicians" where physician_id = \'' + id + '\'';
-			console.log('getting physician query string: ' + qstr);
-			client.query(qstr, function(err, result) {
-					done(); // release client back to the pool
-					if (err) return callback(err, null);
-					callback(err, result);					
-				});	
-		});   
-    }
-    */
+			var physicians = [];
+			for (var i = 0; i < physiciansResults.rows.length; i++) {
+				physicians.push(
+				{Physician_ID__c: physiciansResults.rows[i].physician_id,
+				Last_Name__c: physiciansResults.rows[i].last_name,
+				First_Name__c: physiciansResults.rows[i].first_name,
+				Specialization__c: physiciansResults.rows[i].specialization}
+				);
+			}
+			var options = {
+				extIdField : "Physician_ID__c"
+			};
+		
+			// The following call to bulk.load achieves the full batch process in one method call.
+			// To watch the individual batch responses, you can create a job, then execute
+			// a batch and watch for responses from queued batches. See documentation here
+			// for options on calling bulk api: https://www.npmjs.com/package/node-salesforce
+			conn.bulk.load("Physician__c", "upsert", options, physicians, function(err, rets) {
+				if (err) return callback(err, null);
+
+				for (var i=0; i < rets.length; i++) {
+					if (rets[i].success) {
+						console.log("#" + (i+1) + " upserted successfully, id = " + rets[i].id);
+					} else {
+						console.log("#" + (i+1) + " error occurred, message = " + rets[i].errors.join(', '));
+					}
+				}
+ 
+				var timestamp = strftime('%F %H:%M:%S');
+				var physIDs = '';
+				var first = 'true';
+				for (ix in physicians) {
+					if (first != 'true') {
+						physIDs = physIDs + ', ';
+					}
+					first = 'false';
+					physIDs = physIDs + ('\'' + physicians[ix].Physician_ID__c + '\'');
+				}
+				var upstr = 'UPDATE "PhysiciansRefresh" SET last_refreshed=\'' + timestamp +
+					'\' WHERE org_id = \'' + orgid + '\' and physician_id in (' + physIDs + ')';
+				console.log("upstr: " + upstr);
+				pg.connect(pgConnectionString, function(err, client, done) {
+					client.query(upstr, function(err, result) {
+						done(); // release client back to the pool
+						if (err) {
+							console.log('Unable to update physician records in postgres db. - ' + JSON.stringify(err));
+							return callback(err, null);
+						}
+
+						return callback(null, orgid);
+					});
+				});
+
+			});
+		});	
+	}
 
 }
 
-// helper methods, not exported
+// helper functions:
 
 // callback(err, conn)
 function getConnection(pgConnectionString, orgId, callback) {
@@ -198,4 +247,8 @@ function upsertJWTToken(pgConnectionString, orgid, callback) {
 	});	
 }
 
+    
+
+
 module.exports.OrgsDAO = OrgsDAO;
+
