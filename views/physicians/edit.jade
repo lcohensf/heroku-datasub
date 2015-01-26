@@ -12,6 +12,9 @@ form(method='post', action='/physicians/#{data.rows[0].physician_id}/update')
     label Specialization:  
       input(name='physician[specialization]', value='#{data.rows[0].specialization}' || '', type='text')
   div
+    label Zip Code:  
+      input(name='physician[zipcode]', value='#{data.rows[0].zipcode}' || '', type='text')
+  div
     label ID:
       input(name='physician[physician_id]', value='#{data.rows[0].physician_id}' || '', type='text', readonly)
   div

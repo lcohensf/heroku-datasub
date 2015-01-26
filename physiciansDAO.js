@@ -12,16 +12,16 @@ function PhysiciansDAO(pgConnectionString) {
     }
 
 
-    this.insertPhysician = function (first_name, last_name, specialization, callback) {
-        console.log("inserting physician: " + first_name + " " + last_name + " " + specialization);
+    this.insertPhysician = function (first_name, last_name, specialization, zipcode, callback) {
+        console.log("inserting physician: " + first_name + " " + last_name + " " + specialization + " " + zipcode);
 
 		pg.connect(pgConnectionString, function(err, client, done) {
 			if (err) return callback(err, null);
 
 			var timestamp = strftime('%F %H:%M:%S');
-			var insertArray = [first_name, last_name, specialization, timestamp];
-			client.query('INSERT INTO "physicians" (first_name, last_name, specialization, last_modified) ' + 
-							'VALUES ($1, $2, $3, $4) returning physician_id', insertArray,
+			var insertArray = [first_name, last_name, specialization, zipcode, timestamp];
+			client.query('INSERT INTO "physicians" (first_name, last_name, specialization, zipcode, last_modified) ' + 
+							'VALUES ($1, $2, $3, $4, $5) returning physician_id', insertArray,
 							function(err, result) {
 				done(); // release client back to the pool
 				if (err) return callback(err, null);
@@ -31,18 +31,26 @@ function PhysiciansDAO(pgConnectionString) {
 		});
     }
     
-    this.updatePhysician = function (id, first_name, last_name, specialization, callback) {
-        console.log("updating physician: " + id + " " + first_name + " " + last_name + " " + specialization);
+    this.updatePhysician = function (id, first_name, last_name, specialization, zipcode, callback) {
+        console.log("updating physician: " + id + " " + first_name + " " + last_name + " " + specialization + " " + zipcode);
 			        
 		pg.connect(pgConnectionString, function(err, client, done) {
 			if (err) return callback(err, null);
 			
 			var timestamp = strftime('%F %H:%M:%S');
-			var updateArray = [first_name, last_name, specialization, timestamp, id];
 
-			client.query('UPDATE "physicians" SET first_name=$1, last_name=$2, specialization=$3, last_modified=$4 ' + 
-							'WHERE physician_id = $5 ', updateArray,
-							function(err, result) {
+			/*
+				UPDATE physicians
+   				SET first_name='Allan', last_name='Apple', specialization='Nutrition Counselor',  
+        		zipcode='75551'
+ 				WHERE physician_id='Phys12';
+ 			*/
+ 			
+ 			var updateStr = 'UPDATE "physicians" SET first_name=\'' + first_name + '\', last_name=\'' + last_name + '\', ';
+ 			updateStr = updateStr + 'specialization=\'' + specialization + '\', zipcode=\'' + zipcode + '\', ';
+ 			updateStr = updateStr + 'last_modified=\'' + timestamp + '\' WHERE physician_id=\'' + id + '\'';
+
+			client.query(updateStr, function(err, result) {
 				done(); // release client back to the pool
 				if (err) return callback(err, null);
 				console.log("Updated physician " + id);
@@ -98,7 +106,7 @@ function PhysiciansDAO(pgConnectionString) {
 		pg.connect(pgConnectionString, function(err, client, done) {
 			if (err) return callback(err, null);
 			
-			var qstr = 'SELECT first_name, last_name, specialization, physician_id FROM "physicians" order by last_name, first_name limit ' + num;
+			var qstr = 'SELECT first_name, last_name, specialization, zipcode, physician_id FROM "physicians" order by last_name, first_name limit ' + num;
 			client.query(qstr, function(err, result) {
 					done(); // release client back to the pool
 					if (err) return callback(err, null);
@@ -113,7 +121,7 @@ function PhysiciansDAO(pgConnectionString) {
     	console.log('in getPhysiciansForRefresh');
 		pg.connect(pgConnectionString, function(err, client, done) {
 			if (err) return callback(err, null);
-			var selectRefreshRecords = 'SELECT p.physician_id, p.first_name, p.last_name, p.specialization ' +
+			var selectRefreshRecords = 'SELECT p.physician_id, p.first_name, p.last_name, p.specialization, p.zipcode ' +
   				'FROM "PhysiciansRefresh" pr, "physicians" p ' + 
   				'where  pr.org_id = \'' + orgId + '\' and p.last_modified > pr.last_refreshed and pr.physician_id = p.physician_id';
 
@@ -134,16 +142,16 @@ function PhysiciansDAO(pgConnectionString) {
 			if (err) return callback(err, null);
 				
 			/* Example query:
-			SELECT first_name, last_name, specialization, physician_id
+			SELECT first_name, last_name, specialization, zipcode, physician_id
 			FROM physicians
 			where last_name like 'Joh%' or specialization like '%Pod%'
 			or zipcode like '%2114%'
 			order by last_name, first_name limit 100;
 			*/
-			var queryStr = 'SELECT first_name, last_name, specialization, physician_id FROM "physicians" where ';
+			var queryStr = 'SELECT first_name, last_name, specialization, zipcode, physician_id FROM "physicians" where ';
 			queryStr = queryStr + 'last_name like \'%' + searchString + '%\' or specialization like \'%' + searchString + '%\' ';
 			queryStr = queryStr + ' or zipcode like \'%' + searchString + '%\' ';
-			queryStr = queryStr +  'order by last_name, first_name limit 100';
+			queryStr = queryStr +  'order by last_name, first_name, specialization, zipcode limit 100';
 			//console.log('queryStr = ' + queryStr);
 			client.query(queryStr, function(err, result) {
 				done(); // release client back to the pool
@@ -176,7 +184,7 @@ function PhysiciansDAO(pgConnectionString) {
         pg.connect(pgConnectionString, function(err, client, done) {
 			if (err) return callback(err, null);
 			
-			var qstr = 'SELECT first_name, last_name, specialization, physician_id FROM "physicians" where physician_id = \'' + id + '\'';
+			var qstr = 'SELECT first_name, last_name, specialization, zipcode, physician_id FROM "physicians" where physician_id = \'' + id + '\'';
 			console.log('getting physician query string: ' + qstr);
 			client.query(qstr, function(err, result) {
 				done(); // release client back to the pool

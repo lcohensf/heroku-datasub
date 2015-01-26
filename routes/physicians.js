@@ -19,7 +19,8 @@ function Physicians (pgConnectionString) {
 		var phyFields = {
 			fields: [{name: "first_name", label: "First name"}, 
 			{name: "last_name", label: "Last name"},
-			{name: "specialization", label: "Specialization"}
+			{name: "specialization", label: "Specialization"},
+			{name: "zipcode", label: "Zip Code"}
 			]
 		};
 		return res.render('physicians/new', { title: 'New Physician', data: phyFields });
@@ -29,7 +30,7 @@ function Physicians (pgConnectionString) {
 		console.log('in Physicians.createPhysician');
 		var ph = req.body.physician;
 
-		physicians.insertPhysician(validator.escape(ph.first_name), validator.escape(ph.last_name), validator.escape(ph.specialization), function(err, result) {
+		physicians.insertPhysician(validator.escape(ph.first_name), validator.escape(ph.last_name), validator.escape(ph.specialization), validator.escape(ph.zipcode), function(err, result) {
             if (err) return next(err);
 
            	return res.redirect('/physicians/'+result.rows[0].physician_id);
@@ -72,7 +73,7 @@ function Physicians (pgConnectionString) {
 		console.log('req.params.id: ' + physId);
 	
 		physicians.updatePhysician(validator.escape(physId), validator.escape(ph.first_name), validator.escape(ph.last_name), 
-			validator.escape(ph.specialization), function(err, result) {
+			validator.escape(ph.specialization), validator.escape(ph.zipcode), function(err, result) {
             if (err) return next(err);
 
            	return res.redirect('/physicians/'+physId);
