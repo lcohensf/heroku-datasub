@@ -169,6 +169,7 @@ function PhysiciansDAO(pgConnectionString) {
 						last_name : row.last_name,
 						first_name : row.first_name,
 						specialization : row.specialization,
+						zipcode: row.zipcode,
 						physician_id : row.physician_id
 					};
 					//console.log('physician: ' + JSON.stringify(physician));
