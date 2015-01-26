@@ -7,7 +7,7 @@ function Orgs (pgConnectionString) {
 
 	this.authorizeOrg = function(req, res, next) {
 		console.log('in Orgs.authorizeOrg');
-		var defaultOrgID =  '00Dj0000000I5ifEAC';
+		var defaultOrgID =  '';
 	
 		return res.render("authOrg", 
 			{ title: 'Enter Salesforce Org Connection Information', 

@@ -121,7 +121,8 @@ function OrgsDAO(pgConnectionString) {
 				{Physician_ID__c: physiciansResults.rows[i].physician_id,
 				Last_Name__c: physiciansResults.rows[i].last_name,
 				First_Name__c: physiciansResults.rows[i].first_name,
-				Specialization__c: physiciansResults.rows[i].specialization}
+				Specialization__c: physiciansResults.rows[i].specialization,
+				Zip_Postal_Code__c: physiciansResults.rows[i].zipcode}
 				);
 			}
 			var options = {
@@ -213,6 +214,7 @@ function getConnection(pgConnectionString, orgId, callback) {
 			}
 			// no Oauth2 client secret/key pair is required with SOAP API login
 			var lserv = process.env.LOGIN_SERVER || "https://login.salesforce.com";
+			// https://test.salesforce.com for sandbox
 			var conn = new sf.Connection({loginUrl: lserv});
 			conn.login(uname, pw, function (err, uInfo) {
 				if (err) return callback(err, null);
