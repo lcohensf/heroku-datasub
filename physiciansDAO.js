@@ -137,10 +137,12 @@ function PhysiciansDAO(pgConnectionString) {
 			SELECT first_name, last_name, specialization, physician_id
 			FROM physicians
 			where last_name like 'Joh%' or specialization like '%Pod%'
+			or zipcode like '%2114%'
 			order by last_name, first_name limit 100;
 			*/
 			var queryStr = 'SELECT first_name, last_name, specialization, physician_id FROM "physicians" where ';
 			queryStr = queryStr + 'last_name like \'%' + searchString + '%\' or specialization like \'%' + searchString + '%\' ';
+			queryStr = queryStr + ' or zipcode like \'%' + searchString + '%\' ';
 			queryStr = queryStr +  'order by last_name, first_name limit 100';
 			//console.log('queryStr = ' + queryStr);
 			client.query(queryStr, function(err, result) {

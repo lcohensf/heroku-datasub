@@ -57,6 +57,7 @@ CREATE TABLE physicians
   specialization text,
   physician_id text NOT NULL DEFAULT ('Phys'::text || (nextval('"PhysicianIdsequence"'::regclass))::text),
   last_modified timestamp with time zone,
+  zipcode text,
   CONSTRAINT primarykey PRIMARY KEY ()
 )
 WITH (

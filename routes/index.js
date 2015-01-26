@@ -14,7 +14,7 @@ module.exports = exports = function(app, pgConnectionString) {
 	var orgs = new Orgs(pgConnectionString);
 	
 	app.use(methodOverride('_method')); // Use in POST requests for other request types: PUT, DELETE, PATCH
-	/*// Would leverage like this:
+	/* // Leverage like this:
 	// <form method="POST" action="/resource?_method=DELETE">
 	// <button type="submit">Delete resource</button>
 	// </form>
