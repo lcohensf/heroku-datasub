@@ -158,14 +158,14 @@ function PhysiciansDAO(pgConnectionString) {
 				if (needOr) {
 					queryStr = queryStr + ' or ';
 				}
-				queryStr = queryStr + ' specialization like \'%' + searchString + '%\' ';
+				queryStr = queryStr + ' specialization like \'%' + searchSpecialization + '%\' ';
 				needOr = true;
 			}
 			if (searchZipcode != '') {
 				if (needOr) {
 					queryStr = queryStr + ' or ';
 				}
-				queryStr = queryStr + ' zipcode like \'%' + searchString + '%\' ';
+				queryStr = queryStr + ' zipcode like \'%' + searchZipcode + '%\' ';
 			}
 			queryStr = queryStr +  ' order by last_name, first_name, specialization, zipcode limit 100';
 			
