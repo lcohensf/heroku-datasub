@@ -135,8 +135,8 @@ function PhysiciansDAO(pgConnectionString) {
     }
     
     // callback(err, searchResults) -- searchResults is in JSON array
-    this.getPhysiciansMatchingQuery = function(searchString, callback) {
-    	console.log('PhysiciansDAO.getPhysiciansMatchingQuery, query: ' + searchString);
+    this.getPhysiciansMatchingQuery = function(searchLastName, searchSpecialization, searchZipcode, callback) {
+    	console.log('PhysiciansDAO.getPhysiciansMatchingQuery, searchLastName: ' + searchLastName + ', searchSpecialization: ' + searchSpecialization + ', searchZipcode: ' + searchZipcode);
     	
 		pg.connect(pgConnectionString, function(err, client, done) {
 			if (err) return callback(err, null);
@@ -149,10 +149,28 @@ function PhysiciansDAO(pgConnectionString) {
 			order by last_name, first_name limit 100;
 			*/
 			var queryStr = 'SELECT first_name, last_name, specialization, zipcode, physician_id FROM "physicians" where ';
-			queryStr = queryStr + 'last_name like \'%' + searchString + '%\' or specialization like \'%' + searchString + '%\' ';
-			queryStr = queryStr + ' or zipcode like \'%' + searchString + '%\' ';
-			queryStr = queryStr +  'order by last_name, first_name, specialization, zipcode limit 100';
-			//console.log('queryStr = ' + queryStr);
+			var needOr = false;
+			if (searchLastName != '') {
+				queryStr = queryStr + 'last_name like \'%' + searchLastName + '%\' ';
+				needOr = true;
+			}
+			if (searchSpecialization != '') {
+				if (needOr) {
+					queryStr = queryStr + ' or ';
+				}
+				queryStr = queryStr + ' specialization like \'%' + searchString + '%\' ';
+				needOr = true;
+			}
+			if (searchZipcode != '') {
+				if (needOr) {
+					queryStr = queryStr + ' or ';
+				}
+				queryStr = queryStr + ' zipcode like \'%' + searchString + '%\' ';
+			}
+			queryStr = queryStr +  ' order by last_name, first_name, specialization, zipcode limit 100';
+			
+
+			console.log('queryStr = ' + queryStr);
 			client.query(queryStr, function(err, result) {
 				done(); // release client back to the pool
 				if (err) return callback(err, null);

@@ -44,22 +44,28 @@ function PhysiciansREST (pgConnectionString) {
 
 	this.findPhysicians = function(req, res, next) {
 		console.log('in PhysiciansREST.findPhysicians');
-		var searchString = req.body.query;
+
 		var sf_org_id = req.body.sf_org_id;
 		var token = req.body.jwt_token;
 		
-		if (typeof searchString == 'undefined' || typeof sf_org_id == 'undefined' || typeof token == 'undefined') {
-			console.log('Handling /findPhysicians. Query string, org id, and token required in request body.');
+		if (typeof sf_org_id == 'undefined' || typeof token == 'undefined') {
+			console.log('Handling /findPhysicians. org id and token required in request body.');
 			return next({message: 'Query string, org id, and token required in request body'});
 		}
+		
+		if (typeof req.body.last_name == 'undefined' && typeof req.body.specialization == 'undefined' && typeof req.body.zipcode == 'undefined') {
+			console.log('Handling /findPhysicians. Must provide one or more of the 3 search criteria.');
+			return next({message: 'Search string for at least one of last name, specialization, or zip code required in request body'});
+		}
+		
+		var searchLastName = validator.escape(req.body.last_name || '');
+		var searchSpecialization = validator.escape(req.body.specialization || '');
+		var searchZipcode = validator.escape(req.body.zipcode || '');
 		
 		orgs.verifyOrgAndToken(sf_org_id, token, function(err) {
 			if (err) return next(err);
 			
-			searchString = validator.escape(searchString);
-			console.log('in findPhysicians, query string = ' + searchString);
-
-			physicians.getPhysiciansMatchingQuery(searchString, function(err, searchResults) {
+			physicians.getPhysiciansMatchingQuery(searchLastName, searchSpecialization, searchZipcode, function(err, searchResults) {
 				if (err) return next(err);
 			
 				res.status(200);
