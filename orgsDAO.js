@@ -4,25 +4,25 @@ var pg = require('pg'),
 	sf = require('node-salesforce'),
 	jwt = require('jwt-simple');
 
-var pgcryptoinsert = 'INSERT INTO oauth("org_id", "uname", "pw") '
-	+ 'SELECT vals.org_id, pgp_pub_encrypt(vals.uname, keys.pubkey) as uname, '
+var pgcryptoinsert = 'INSERT INTO oauth("org_id", "sandbox", "uname", "pw") '
+	+ 'SELECT vals.org_id, vals.sandbox, pgp_pub_encrypt(vals.uname, keys.pubkey) as uname, '
 	+ 'pgp_pub_encrypt(vals.pw, keys.pubkey) as pw '
-	+ 'FROM (VALUES ($1, $2, $3)) as vals(org_id, uname, pw) '
-	+ 'CROSS JOIN (SELECT dearmor($4) as pubkey) as keys';
+	+ 'FROM (VALUES ($1, $2, $3, $4)) as vals(org_id, sandbox, uname, pw) '
+	+ 'CROSS JOIN (SELECT dearmor($5) as pubkey) as keys';
 				
-var noncryptoinsert = 	'INSERT INTO oauth (org_id, uname, pw) VALUES ($1, $2, $3)';
+var noncryptoinsert = 	'INSERT INTO oauth (org_id, sandbox, uname, pw) VALUES ($1, $2, $3, $4)';
 
-var pgcryptoselect = 'SELECT oauth.org_id, pgp_pub_decrypt(oauth.uname, keys.privkey) as uname_decrypt, '
+var pgcryptoselect = 'SELECT oauth.org_id, oauth.sandbox, pgp_pub_decrypt(oauth.uname, keys.privkey) as uname_decrypt, '
 		+ 'pgp_pub_decrypt(oauth.pw, keys.privkey) as pw_decrypt '
 		+ 'FROM oauth CROSS JOIN (SELECT dearmor($2) as privkey) as keys where oauth.org_id = $1';
 		
-var noncryptoselect = 	'SELECT org_id, uname, pw FROM oauth where org_id = $1';
+var noncryptoselect = 	'SELECT org_id, sandbox, uname, pw FROM oauth where org_id = $1';
 
-var pgcryptoselectall = 'SELECT oauth.org_id, pgp_pub_decrypt(oauth.uname, keys.privkey) as uname_decrypt, '
+var pgcryptoselectall = 'SELECT oauth.org_id, oauth.sandbox, pgp_pub_decrypt(oauth.uname, keys.privkey) as uname_decrypt, '
 		+ 'pgp_pub_decrypt(oauth.pw, keys.privkey) as pw_decrypt '
 		+ 'FROM oauth CROSS JOIN (SELECT dearmor($2) as privkey) as keys';
 		
-var noncryptoselectall = 	'SELECT org_id, uname, pw FROM oauth';
+var noncryptoselectall = 	'SELECT org_id, sandbox, uname, pw FROM oauth';
 
 var jwtSecret = process.env.JWTSecret || 'N3c8h3h7ljzzap56tsuxMw';
 var localmode = true;
@@ -50,7 +50,7 @@ function OrgsDAO(pgConnectionString) {
 	
 	// If a record exists for this org, we'll delete it first
 	// callback(err)
-    this.saveAndConnectOrg = function (orgId, uname, pw, callback) {
+    this.saveAndConnectOrg = function (orgId, uname, pw, sandbox, callback) {
         console.log("saving org: " + orgId + " " + uname);
 
 		pg.connect(pgConnectionString, function(err, client, done) {
@@ -63,10 +63,10 @@ function OrgsDAO(pgConnectionString) {
 				
 				if (localmode == true) {
 					insertstmt = noncryptoinsert;
-					insertarray = [orgId, uname, pw];
+					insertarray = [orgId, sandbox, uname, pw];
 				} else {
 					insertstmt = pgcryptoinsert;
-					insertarray = [orgId, uname, pw, pubkey];
+					insertarray = [orgId, sandbox, uname, pw, pubkey];
 				}
 				
 				client.query(insertstmt, insertarray,
@@ -201,20 +201,26 @@ function getConnection(pgConnectionString, orgId, callback) {
 				return callback({message: 'unregistered org'}, null);
 			}
 			var orgId = '';
+			var sandbox = '';
 			var uname = '';
 			var pw = '';		
 			if (localmode == true) {
 				orgId = result.rows[0].org_id;
+				sandbox = result.rows[0].sandbox;
 				uname = result.rows[0].uname;
 				pw = result.rows[0].pw;
 			} else {
 				orgId = result.rows[0].org_id;
+				sandbox = result.rows[0].sandbox;
 				uname = result.rows[0].uname_decrypt;
 				pw = result.rows[0].pw_decrypt;
 			}
 			// no Oauth2 client secret/key pair is required with SOAP API login
-			var lserv = process.env.LOGIN_SERVER || "https://login.salesforce.com";
-			// https://test.salesforce.com for sandbox
+			var lserv = "https://login.salesforce.com";
+			if (sandbox == 'on') {
+				lserv = "https://test.salesforce.com";
+			}
+			
 			var conn = new sf.Connection({loginUrl: lserv});
 			conn.login(uname, pw, function (err, uInfo) {
 				if (err) return callback(err, null);

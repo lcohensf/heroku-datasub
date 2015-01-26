@@ -2,12 +2,19 @@ h1= title
 form(method='post', action='/saveOrg')
   div
     label Salesforce Org Id (18 character version):
-      input(name='org_id', value='#{defaults.orgId}', type='text')
+      input(name='org_id', value='#{defaults.orgId}', type='text', size=20)
+  <br>
   div
     label Username for API connections:
-      input(name='uname', type='text')
+      input(name='uname', type='text', size=50)
   div
     label Password followed by Security Token:
-      input(name='pw', type='text')      
+      input(name='pw', type='text', size=50)    
+  <br>
+  div
+    label
+      input(type="checkbox", name="sandbox")
+      = " This is a login for a Salesforce sandbox org." 
+  <br><br> 
   div
     input(type='submit', value='Authorize Connection to Org')

@@ -69,6 +69,7 @@ ALTER TABLE physicians
 CREATE TABLE oauth
 (
   org_id text NOT NULL,
+  sandbox text,
   uname bytea,
   pw bytea
 )
