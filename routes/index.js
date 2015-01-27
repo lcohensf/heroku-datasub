@@ -26,7 +26,7 @@ module.exports = exports = function(app, pgConnectionString) {
 	
 	// need to fix the redirect... it's catching http requests but not redirecting correctly
 	app.use(securityHandler.requireHTTPSMiddleware);
-	//app.use(securityHandler.requirePostHeadersMiddleware);
+	app.use(securityHandler.requirePostHeadersMiddleware);
 	
 	
 	app.get('/',  function(req,res) {
