@@ -136,6 +136,7 @@ function OrgsDAO(pgConnectionString) {
 			conn.bulk.load("Physician__c", "upsert", options, physicians, function(err, rets) {
 				if (err) return callback(err, null);
 
+				
 				for (var i=0; i < rets.length; i++) {
 					if (rets[i].success) {
 						console.log("#" + (i+1) + " upserted successfully, id = " + rets[i].id);
@@ -143,6 +144,7 @@ function OrgsDAO(pgConnectionString) {
 						console.log("#" + (i+1) + " error occurred, message = " + rets[i].errors.join(', '));
 					}
 				}
+				
  
 				var timestamp = strftime('%F %H:%M:%S');
 				var physIDs = '';

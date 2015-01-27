@@ -10,6 +10,7 @@ To install the Salesforce app:
 3. This heroku app is designed to support multiple Salesforce.com orgs running the dataserv app. Follow the instructions in the Salesforce app repo README file for each instance of the Force.com dataserv app that you setup.
 
 
+
 ### Deploying to Heroku
 
 First generate a public key/private key pair for postgres encryption at rest. This reference architecture app uses keys generated with RSA algorithm,
@@ -65,3 +66,18 @@ You can either manually run the refresh.js app (heroku run worker) or you can se
 To manage scheduled jobs and schedule "heroku run worker":
 >heroku addons:open scheduler
 
+## Connect this heroku server to a Salesforce org:
+
+First, navigate to your app/authorg, e.g. https://mydataservice.heroku.com/authorg
+Enter the 18 character organization ID for your Salesforce Org, which you can retrieve using the developer console by executing the following in the execute anonymous window then looking at the logs:
+String orgId = UserInfo.getOrganizationId();
+System.debug('orgID: ' + orgId);
+
+Enter the username and password for the account that you will use for call-ins to the salesforce org. The account must have write access to the custom setting, Integration, and update/write access to all Physician__c records.
+The password must be of the form: password followed immediately by the security token for the user.
+
+If the connection is successful, you will be returned to the home page for the heroku app.
+
+## Maintain central physicians repository
+
+This heroku app provides a simplistic interface for listing, creating and updating example physician records stored in a postgres database on heroku. You will locate the starting point for maintain the records on the home page of the heroku app.

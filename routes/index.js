@@ -25,7 +25,7 @@ module.exports = exports = function(app, pgConnectionString) {
 	app.set('view engine', 'jade');
 	
 	// need to fix the redirect... it's catching http requests but not redirecting correctly
-	//app.use(securityHandler.requireHTTPSMiddleware);
+	app.use(securityHandler.requireHTTPSMiddleware);
 	//app.use(securityHandler.requirePostHeadersMiddleware);
 	
 	
