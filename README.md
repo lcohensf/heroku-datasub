@@ -53,7 +53,9 @@ Create postgres database on heroku:
 Add pgcrypto extension to postgres database:
 
 >heroku pg:psql --app your_heroku_app_name
+
 >create extension pgcrypto;
+
 >\q
 
 Create tables and sequences in the default schema of your postgres database by running statements in file "dbcreate.txt". 
@@ -62,7 +64,9 @@ Create tables and sequences in the default schema of your postgres database by r
 Set environment variables on heroku. (For the JWTSecret variable, use a random sequence of approximately 20 letters and numbers.)
 
 >heroku config:set JWTSecret=YOUR_JWT_TOKEN_SALT_STRING
+
 >heroku config:set PUBKey='insert full pubkey string here'
+
 >heroku config:set PRIVKey='insert full privkey string here'
 
 As an example, the PUBKey variable will begin with '-----BEGIN PGP PUBLIC KEY BLOCK-----' and end with '-----END PGP PUBLIC KEY BLOCK-----'
