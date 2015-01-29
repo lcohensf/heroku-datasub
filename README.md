@@ -118,9 +118,9 @@ If the connection is successful, you will be returned to the home page of the he
 ## Installing Salesforce app:
 
 1. Sign up for a free Salesforce.com Developer Environment at https://developer.salesforce.com/
-2. Install the app into your org:
-	a. Using the provided unmanaged package by navigating to the following URL while logged into your Salesforce org: https://login.salesforce.com/packaging/installPackage.apexp?p0=04tj0000001YGTL
-	b. Alternatively, you may clone the source for the app from this github repository: https://github.com/lcohensf/force-datasub.git After deploying the source code to your org, set visibility and access for all elements of the app and follow the remaining instructions here for configuring the remote site setting and custom setting.
+2. Install the app into your org by either:
+	* Using the provided unmanaged package by navigating to the following URL while logged into your Salesforce org: https://login.salesforce.com/packaging/installPackage.apexp?p0=04tj0000001YGTL
+	* Or, you may clone the source for the app from this github repository: https://github.com/lcohensf/force-datasub.git After deploying the source code to your org, set visibility and access for all elements of the app and follow the remaining instructions here for configuring the remote site setting and custom setting.
 3. Create a Remote Site Setting for the Heroku app services (see Security Controls in Setup menu). The remote site URL should be the path to your Heroku app, e.g. https://mydataservice.heroku.com
 4. Configure a custom setting named, Integration (see Develop - Custom Settings in Setup menu).  The "Integration" custom setting should be type, List, and have Object Name, Integration. Set visibility to protected. Create 2 items in the Integration setting: JWTToken and DataServiceURL.
 Size of JWTToken should be 355, and you do not have to set the value of this setting because it is set for you as part of connecting your Heroku app to this org (see directions above).
