@@ -14,6 +14,7 @@ architecture on Heroku. Users of the Salesforce.com subscribe to Physician recor
 receive any refreshed data from a Heroku refresh service. 
 
 At a systems level this reference architecture consists of 5 components:
+
 On Heroku
 1. Web server providing UI for maintaining Physician records and UI for registering 
 Salesforce.com orgs with the subscription service. This Web server also implements the REST services called
@@ -27,6 +28,7 @@ On Salesforce.com
 
 
 If you are new to Salesforce.com or development on the Salesforce.com platform, check out the the developer community at: https://developer.salesforce.com/
+
 If you are new to Heroku or developing node.js applications on Heroku, check out  this "Getting Started with node.js on Heroku" article: https://devcenter.heroku.com/articles/getting-started-with-nodejs
 
 ## Deploying to Heroku
@@ -38,12 +40,15 @@ See documentation on postgres pgcrypto for details: http://www.postgresql.org/do
 In the directory where you clone this repository:
 
 Create heroku app:
+
 >heroku create
 
 Create postgres database on heroku:
+
 >heroku addons:add heroku-postgresql:dev
 
 Add pgcrypto extension to postgres database:
+
 >heroku pg:psql --app your_heroku_app_name
 >create extension pgcrypto;
 >\q
@@ -60,6 +65,7 @@ Set environment variables on heroku. (For the JWTSecret variable, use a random s
 As an example, the PUBKey variable will begin with '-----BEGIN PGP PUBLIC KEY BLOCK-----' and end with '-----END PGP PUBLIC KEY BLOCK-----'
 
 Push the app to heroku:
+
 >git push heroku master
 
 ### About the Procfile:
@@ -67,6 +73,7 @@ Push the app to heroku:
 #### Web server
 
 This repository includes a web server app with the following capabilities:
+
 1. UI for maintaining the example central repository of Physicians data
 2. UI for authorizing 2 way API calls between the Heroku app and Salesforce orgs
 3. REST web services for Salesforce orgs to subscribe to Physicians records
@@ -85,6 +92,7 @@ You may either manually run the refresh.js app from a console window (heroku run
 >heroku addons:add scheduler:standard
 
 To manage scheduled jobs and schedule "heroku run worker":
+
 >heroku addons:open scheduler
 
 ## Connect this Heroku server app to a Salesforce org:
@@ -92,9 +100,10 @@ To manage scheduled jobs and schedule "heroku run worker":
 First, complete the installation of the Salesforce app into your org as documented in the section below.
 
 Then, navigate to your-heroku-app/authorg, e.g. https://mydataservice.heroku.com/authorg, and enter the following information:
-The 18 character organization ID for your Salesforce Org
-The username and password for the account that you will use for call-ins to the salesforce org. The account must have write access to the custom setting, Integration, and update/write access to all Physician__c records.
-The password must be of the form: password followed immediately by the security token for the user.
+
+* The 18 character organization ID for your Salesforce Org
+* The username and password for the account that you will use for call-ins to the salesforce org. The account must have write access to the custom setting, Integration, and update/write access to all Physician__c records.
+* The password must be of the form: password followed immediately by the security token for the user.
 
 If the connection is successful, you will be returned to the home page of the heroku app.
 
@@ -111,8 +120,10 @@ Size of JWTToken should be 355, and you do not have to set the value of this set
 Set the value of DataServiceURL to the same URL as the Remote Site Setting that you created above, e.g. https://mydataservice.heroku.com
 5. Determine which user account you will utilize for API connections from the Heroku app to your org. Generate security token for this user and make a note of the username, password, and security token.
 6. Determine the 18 character organization ID for your org., which you can retrieve using the developer console by executing the following in the execute anonymous window then looking at the logs:
+
 >String orgId = UserInfo.getOrganizationId();
 >System.debug('orgID: ' + orgId);
+
 7. After completing the connection of the Heroku server app to this Salesforce org (see instructions in above section), you may access the app via the "Physicians Repository" app in the app menu.
 
 This Heroku app is designed to support multiple Salesforce.com orgs running the dataserv app. Repeat these Salesforce app instructions and the instructions above for connecting the Heroku server to a Salesforce org for each org.
