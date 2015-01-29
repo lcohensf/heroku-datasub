@@ -16,6 +16,7 @@ receive any refreshed data from a Heroku refresh service.
 At a systems level this reference architecture consists of 5 components:
 
 On Heroku
+
 1. Web server providing UI for maintaining Physician records and UI for registering 
 Salesforce.com orgs with the subscription service. This Web server also implements the REST services called
 from Salesforce.com orgs to subscribe to Physician records.
@@ -23,7 +24,9 @@ from Salesforce.com orgs to subscribe to Physician records.
 modified records. 
 3. Heroku Scheduler - an optional Heroku add-on for automatically running the Refresh worker process, similar to cron jobs on Unix.
 4. Postgres database
+
 On Salesforce.com
+
 1. An application that implements the subscription workflow and maintains a local copy of Physician records.
 
 
