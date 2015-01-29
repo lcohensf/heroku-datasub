@@ -1,6 +1,3 @@
--- Sequence: "PhysicianIdsequence"
-
--- DROP SEQUENCE "PhysicianIdsequence";
 
 CREATE SEQUENCE "PhysicianIdsequence"
   INCREMENT 1
@@ -11,9 +8,7 @@ CREATE SEQUENCE "PhysicianIdsequence"
 ALTER TABLE "PhysicianIdsequence"
   OWNER TO jmrxyqrrxbdrgb;
   
--- Sequence: "PhysSubscribeSequence"
 
--- DROP SEQUENCE "PhysSubscribeSequence";
 
 CREATE SEQUENCE "PhysSubscribeSequence"
   INCREMENT 0
@@ -25,9 +20,7 @@ ALTER TABLE "PhysSubscribeSequence"
   OWNER TO jmrxyqrrxbdrgb;
 
 
--- Table: "PhysiciansRefresh"
 
--- DROP TABLE "PhysiciansRefresh";
 
 CREATE TABLE "PhysiciansRefresh"
 (
@@ -41,14 +34,7 @@ WITH (
   OIDS=FALSE
 );
 
- 
-  
-ALTER TABLE "PhysiciansRefresh"
-  OWNER TO jmrxyqrrxbdrgb;
 
--- Table: physicians
-
--- DROP TABLE physicians;
 
 CREATE TABLE physicians
 (
@@ -63,8 +49,10 @@ CREATE TABLE physicians
 WITH (
   OIDS=FALSE
 );
+
 ALTER TABLE physicians
-  OWNER TO jmrxyqrrxbdrgb;
+  ADD CONSTRAINT primarykey PRIMARY KEY(physician_id);
+
 
 CREATE TABLE oauth
 (
@@ -77,4 +65,5 @@ WITH (
   OIDS=FALSE
 );
 
-
+ALTER TABLE oauth
+  ADD CONSTRAINT "Primary Key" PRIMARY KEY(org_id);
