@@ -87,7 +87,7 @@ You may either manually run the refresh.js app from a console window (heroku run
 To manage scheduled jobs and schedule "heroku run worker":
 >heroku addons:open scheduler
 
-## Connect this heroku server to a Salesforce org:
+## Connect this Heroku server app to a Salesforce org:
 
 First, complete the installation of the Salesforce app into your org as documented in the section below.
 
@@ -113,6 +113,7 @@ Set the value of DataServiceURL to the same URL as the Remote Site Setting that 
 6. Determine the 18 character organization ID for your org., which you can retrieve using the developer console by executing the following in the execute anonymous window then looking at the logs:
 >String orgId = UserInfo.getOrganizationId();
 >System.debug('orgID: ' + orgId);
+7. After completing the connection of the Heroku server app to this Salesforce org (see instructions in above section), you may access the app via the "Physicians Repository" app in the app menu.
 
 This Heroku app is designed to support multiple Salesforce.com orgs running the dataserv app. Repeat these Salesforce app instructions and the instructions above for connecting the Heroku server to a Salesforce org for each org.
 
