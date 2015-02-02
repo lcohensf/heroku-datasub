@@ -5,9 +5,7 @@ CREATE SEQUENCE "PhysicianIdsequence"
   MAXVALUE 9223372036854775807
   START 29
   CACHE 1;
-ALTER TABLE "PhysicianIdsequence"
-  OWNER TO jmrxyqrrxbdrgb;
-  
+ 
 
 
 CREATE SEQUENCE "PhysSubscribeSequence"
@@ -16,10 +14,6 @@ CREATE SEQUENCE "PhysSubscribeSequence"
   MAXVALUE 0
   START 0
   CACHE 0;
-ALTER TABLE "PhysSubscribeSequence"
-  OWNER TO jmrxyqrrxbdrgb;
-
-
 
 
 CREATE TABLE "PhysiciansRefresh"
