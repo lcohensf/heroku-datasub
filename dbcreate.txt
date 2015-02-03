@@ -3,17 +3,17 @@ CREATE SEQUENCE "PhysicianIdsequence"
   INCREMENT 1
   MINVALUE 0
   MAXVALUE 9223372036854775807
-  START 29
+  START 1
   CACHE 1;
  
 
 
 CREATE SEQUENCE "PhysSubscribeSequence"
-  INCREMENT 0
+  INCREMENT 1
   MINVALUE 0
-  MAXVALUE 0
-  START 0
-  CACHE 0;
+  MAXVALUE 9223372036854775807
+  START 1
+  CACHE 1;
 
 
 CREATE TABLE "PhysiciansRefresh"
@@ -37,8 +37,7 @@ CREATE TABLE physicians
   specialization text,
   physician_id text NOT NULL DEFAULT ('Phys'::text || (nextval('"PhysicianIdsequence"'::regclass))::text),
   last_modified timestamp with time zone,
-  zipcode text,
-  CONSTRAINT primarykey PRIMARY KEY ()
+  zipcode text
 )
 WITH (
   OIDS=FALSE
