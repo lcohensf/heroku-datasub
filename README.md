@@ -9,9 +9,9 @@ reference architecture implements an example use case targeted at the Healthcare
 maintained in a central Postgres database hosted on Heroku. However, the patterns implemented in this ref. arch. are
 generally applicable to any industry.
 
-The Heroku components are installed once and support multiple Salesforce.com orgs, essentially, a multi-tenant 
-architecture on Heroku. Users of the Salesforce.com subscribe to Physician records maintained on Heroku and periodically
-receive any refreshed data from a Heroku refresh service. 
+The Heroku components are installed once and support multiple Salesforce.com orgs, essentially, a hub-and-spoke architecture, with
+the hub implemented as a multi-tenant service on Heroku. Users of the Salesforce.com app subscribe to Physician records maintained on Heroku and periodically
+receive any refreshed data from a refresh service implemented in node.js as a worker process. 
 
 At a systems level this reference architecture consists of 5 components:
 
@@ -23,7 +23,7 @@ from Salesforce.com orgs to subscribe to Physician records.
 2. Refresh worker process for pushing updated Physician records to those orgs that have subscribed to the 
 modified records. 
 3. Heroku Scheduler - an optional Heroku add-on for automatically running the Refresh worker process, similar to cron jobs on Unix.
-4. Postgres database
+4. Postgres database with encryption at rest extension
 
 On Salesforce.com
 
@@ -36,7 +36,7 @@ If you are new to Heroku or developing node.js applications on Heroku, check out
 
 ## Deploying to Heroku
 
-First generate a public key/private key pair for postgres encryption at rest. This reference app uses keys generated with the RSA algorithm,
+First generate a public key/private key pair for use with postgres encryption at rest. This reference app uses keys generated with the RSA algorithm,
 length 2048 (GPG Keychain Access was used to generate the keys). Do not set a passphrase for the key pair. 
 See documentation on postgres pgcrypto for details: http://www.postgresql.org/docs/9.1/static/pgcrypto.html
 
@@ -69,7 +69,22 @@ Set environment variables on heroku. (For the JWTSecret variable, use a random s
 
 >heroku config:set PRIVKey='insert full privkey string here'
 
-As an example, the PUBKey variable will begin with '-----BEGIN PGP PUBLIC KEY BLOCK-----' and end with '-----END PGP PUBLIC KEY BLOCK-----'
+It is important to enclose the values for the PUBKey and PRIVKey variables with single quotes.
+
+These keys look like the following text when exported from GPG Keychain Access and similar tools:
+```
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+Version: GnuPG/MacGPG2 v2.0.22 (Darwin)
+Comment: GPGTools - https://gpgtools.org
+
+mQENBFTSWd0BCADGcXujMxhNkBG67gTfnHG/irkjiszgPsydRX1/+XfBlFrmrMHi
+KjcfnakKHUtYfVHnDoxkLnugAAYs0Dp3QQhmfHAArQQqbrRAASJNk6xsqjgH2u84
+.... rest of key omitted....
+Sis7rX+hEln5Ke0qndwrnTRAvv4rUXB1jz2k0KmspC043vWuhqhBPi9zHziOyQg4
+5VL8wNlP3FSrCB2T
+=ykGX
+-----END PGP PUBLIC KEY BLOCK-----
+```
 
 Push the app to heroku:
 
@@ -102,9 +117,31 @@ To manage scheduled jobs and schedule "heroku run worker":
 
 >heroku addons:open scheduler
 
+
+## Installing Salesforce app:
+
+1. Sign up for a free Salesforce.com Developer Environment at https://developer.salesforce.com/. (Do not install this app into a Developer Edition org where you have defined a namespace or created a managed package.)
+2. Install the app into your org by either:
+	* Using the provided unmanaged package by navigating to the following URL while logged into your Salesforce org: https://login.salesforce.com/packaging/installPackage.apexp?p0=04tj0000001YGTL
+	* Or, you may clone the source for the app from this github repository: https://github.com/lcohensf/force-datasub.git After deploying the source code to your org, set visibility and access for all elements of the app and follow the remaining instructions here for configuring the remote site setting and custom setting.
+3. Create a Remote Site Setting for the Heroku app services (see Security Controls in Setup menu). The remote site URL should be the path to your Heroku app, e.g. https://mydataservice.heroku.com
+4. Configure a protected custom setting named, Integration (see Develop - Custom Settings in Setup menu).  The "Integration" custom setting should be type, List, and have Object Name, Integration. 
+Length of items in list should be 355.
+Then, create 2 data sets in the Integration setting: JWTToken and DataServiceURL. (Note: The unmanaged package will create the Integration custom setting for you but you will need 
+to create the 2 data sets within the setting.)
+You can set the Key value for JWTToken to anything. It will be overwritten as part of connecting your Heroku app to this org (see directions below).
+Set the value of DataServiceURL to the same URL as the Remote Site Setting that you created above, e.g. https://mydataservice.heroku.com
+Be sure to not include anything in the DataServiceURL Key value, such as trailing slashes, after "heroku.com".
+5. Determine which user account you will utilize for API connections from the Heroku app to your org. Generate security token for this user and make a note of the username, password, and security token.
+6. Determine the 18 character organization ID for your org., which you can retrieve using the developer console by executing the following in the execute anonymous window then looking at the logs:
+	>String orgId = UserInfo.getOrganizationId();
+
+	>System.debug('orgID: ' + orgId);
+7. After completing the connection of the Heroku server app to this Salesforce org (see instructions below), you may access the app via the "Physicians Repository" app in the app menu.
+
 ## Connect this Heroku server app to a Salesforce org:
 
-First, complete the installation of the Salesforce app into your org as documented in the section below.
+First, complete the installation of the Salesforce app into your org as documented in the section above.
 
 Then, navigate to your-heroku-app/authorg, e.g. https://mydataservice.heroku.com/authorg, and enter the following information:
 
@@ -114,24 +151,6 @@ Then, navigate to your-heroku-app/authorg, e.g. https://mydataservice.heroku.com
 
 If the connection is successful, you will be returned to the home page of the heroku app.
 
-
-## Installing Salesforce app:
-
-1. Sign up for a free Salesforce.com Developer Environment at https://developer.salesforce.com/
-2. Install the app into your org by either:
-	* Using the provided unmanaged package by navigating to the following URL while logged into your Salesforce org: https://login.salesforce.com/packaging/installPackage.apexp?p0=04tj0000001YGTL
-	* Or, you may clone the source for the app from this github repository: https://github.com/lcohensf/force-datasub.git After deploying the source code to your org, set visibility and access for all elements of the app and follow the remaining instructions here for configuring the remote site setting and custom setting.
-3. Create a Remote Site Setting for the Heroku app services (see Security Controls in Setup menu). The remote site URL should be the path to your Heroku app, e.g. https://mydataservice.heroku.com
-4. Configure a custom setting named, Integration (see Develop - Custom Settings in Setup menu).  The "Integration" custom setting should be type, List, and have Object Name, Integration. Set visibility to protected. Create 2 items in the Integration setting: JWTToken and DataServiceURL.
-Size of JWTToken should be 355, and you do not have to set the value of this setting because it is set for you as part of connecting your Heroku app to this org (see directions above).
-Set the value of DataServiceURL to the same URL as the Remote Site Setting that you created above, e.g. https://mydataservice.heroku.com
-5. Determine which user account you will utilize for API connections from the Heroku app to your org. Generate security token for this user and make a note of the username, password, and security token.
-6. Determine the 18 character organization ID for your org., which you can retrieve using the developer console by executing the following in the execute anonymous window then looking at the logs:
-	>String orgId = UserInfo.getOrganizationId();
-
-	>System.debug('orgID: ' + orgId);
-7. After completing the connection of the Heroku server app to this Salesforce org (see instructions in above section), you may access the app via the "Physicians Repository" app in the app menu.
-
-This Heroku app is designed to support multiple Salesforce.com orgs running the dataserv app. Repeat these Salesforce app instructions and the instructions above for connecting the Heroku server to a Salesforce org for each org.
+This Heroku app is designed to support multiple Salesforce.com orgs running the dataserv app. Repeat the "Installing Salesforce app" instructions and the "Connect this Heroku server app to a Salesforce org" instructions for each org.
 
 
