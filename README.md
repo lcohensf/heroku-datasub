@@ -100,14 +100,14 @@ This repository includes a web server app with the following capabilities:
 2. UI for authorizing 2 way API calls between the Heroku app and Salesforce orgs
 3. REST web services for Salesforce orgs to subscribe to Physicians records
 
-web: node app.js
+>web: node app.js
 
 #### Data subscription refresh worker process
 
 This repository includes a worker process implemented in refresh.js that pushes modifications to Physician records from the central postgres repository 
 to the subscribed orgs.
 
-worker: node refresh.js
+>worker: node refresh.js
 
 You may either manually run the refresh.js app from a console window (heroku run worker) or you can setup the heroku scheduler add-on to run the refresh process automatically:
 
