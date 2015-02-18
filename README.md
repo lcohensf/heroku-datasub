@@ -122,7 +122,7 @@ To manage scheduled jobs and schedule "heroku run worker":
 
 1. Sign up for a free Salesforce.com Developer Environment at https://developer.salesforce.com/. (Do not install this app into a Developer Edition org where you have defined a namespace or created a managed package.)
 2. Install the app into your org by either:
-	* Using the provided unmanaged package by navigating to the following URL while logged into your Salesforce org: https://login.salesforce.com/packaging/installPackage.apexp?p0=04tj0000001YGTL
+	* Using the provided unmanaged package by navigating to the following URL while logged into your Salesforce org: https://login.salesforce.com/packaging/installPackage.apexp?p0=04tj0000000L6gz
 	* Or, you may clone the source for the app from this github repository: https://github.com/lcohensf/force-datasub.git After deploying the source code to your org, set visibility and access for all elements of the app and follow the remaining instructions here for configuring the remote site setting and custom setting.
 3. Create a Remote Site Setting for the Heroku app services (see Security Controls in Setup menu). The remote site URL should be the path to your Heroku app, e.g. https://mydataservice.heroku.com
 4. Configure a protected custom setting named, Integration (see Develop - Custom Settings in Setup menu).  The "Integration" custom setting should be type, List, and have Object Name, Integration. 

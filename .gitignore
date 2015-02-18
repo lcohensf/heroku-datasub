@@ -1,5 +1,6 @@
 node_modules/**
 *.asc
+*.pdf
 *.key
 SFnotes.txt
 *.sh
